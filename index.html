@@ -334,6 +334,46 @@ footer {
 }
 .fl { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: .06em; text-transform: uppercase; }
 .fr { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+/* ── TABS ── */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 0 40px;
+  display: flex;
+  gap: 4px;
+}
+.tab-btn {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text3);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 14px 22px;
+  cursor: pointer;
+  transition: color .2s, border-color .2s;
+  margin-bottom: -2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { color: var(--green); }
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* ── PROP SEARCH ── */
+#propSearch:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(31,108,67,0.1); }
+.prop-row-clickable { cursor: pointer; }
+.prop-row-clickable:hover td { background: var(--green-bg) !important; }
+.rubro-tag {
+  display: inline-block;
+  background: var(--green-xl);
+  color: var(--green);
+  border-radius: 100px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 2px 2px 2px 0;
+}
 </style>
 </head>
 <body>
@@ -379,7 +419,13 @@ footer {
 </div>
 
 <!-- KPIs -->
-<div class="kpi-strip">
+
+<!-- TABS -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard General</button>
+  <button class="tab-btn" onclick="switchTab('propiedades')">🏠 Evaluación de Propiedades</button>
+</div>
+<div id="tab-dashboard"><div class="kpi-strip">
   <div class="kpi green">
     <div class="kpi-label">Total Reclamos</div>
     <div class="kpi-value" id="k1">—</div>
@@ -492,6 +538,104 @@ footer {
 
 </div><!-- /page -->
 
+
+</div><!-- /tab-dashboard -->
+
+<!-- TAB PROPIEDADES -->
+<div id="tab-propiedades" style="display:none">
+  <div class="kpi-strip">
+    <div class="kpi green">
+      <div class="kpi-label">Propiedades con Reclamos</div>
+      <div class="kpi-value" id="pK1">—</div>
+      <div class="kpi-sub">inmuebles únicos</div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Reclamos Promedio</div>
+      <div class="kpi-value" id="pK2">—</div>
+      <div class="kpi-sub">por propiedad</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Propiedad más activa</div>
+      <div class="kpi-value" style="font-size:16px;line-height:1.2" id="pK3">—</div>
+      <div class="kpi-sub" id="pK3s">reclamos</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Gasto Total Propiedades</div>
+      <div class="kpi-value" id="pK4">—</div>
+      <div class="kpi-sub">mano de obra + materiales</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Gasto Promedio</div>
+      <div class="kpi-value" id="pK5">—</div>
+      <div class="kpi-sub">por propiedad</div>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="section-label">Buscador de Propiedades</div>
+    <div class="card">
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px">
+        <input type="text" id="propSearch" placeholder="Buscar por dirección, propietario o inquilino…"
+          oninput="renderPropTable()"
+          style="flex:1;min-width:260px;padding:10px 16px;border:1.5px solid var(--border-g);border-radius:8px;font-family:var(--font-body);font-size:14px;background:var(--green-bg);color:var(--text);outline:none;">
+        <div class="sel-wrap">
+          <select id="propSort" onchange="renderPropTable()">
+            <option value="reclamos">Ordenar: más reclamos</option>
+            <option value="gasto">Ordenar: mayor gasto</option>
+            <option value="nombre">Ordenar: A → Z</option>
+          </select>
+        </div>
+      </div>
+      <div class="t-wrap">
+        <table>
+          <thead><tr>
+            <th>Dirección</th>
+            <th>Propietario</th>
+            <th>Inquilino</th>
+            <th class="tr">Reclamos</th>
+            <th>Rubros más frecuentes</th>
+            <th class="tr">Gasto Total</th>
+            <th class="tr">Último reclamo</th>
+          </tr></thead>
+          <tbody id="propTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-label">Detalle de Propiedad</div>
+    <div class="card" id="propDetail" style="display:none">
+      <div class="card-title" id="propDetailTitle">Seleccioná una propiedad</div>
+      <div class="row row-2" style="margin-top:4px">
+        <div>
+          <div class="ch-wrap" style="height:220px"><canvas id="propRubroChart" role="img" aria-label="Rubros de la propiedad"></canvas></div>
+        </div>
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px" id="propKpiGrid"></div>
+        </div>
+      </div>
+      <div class="t-wrap" style="margin-top:16px">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Reclamo</th><th>Rubro</th><th>Proveedor</th><th>Estado</th><th class="tr">Gasto</th>
+          </tr></thead>
+          <tbody id="propDetailBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-label">Top Propiedades por Reclamos</div>
+    <div class="row row-2">
+      <div class="card">
+        <div class="card-title">Propiedades con más reclamos</div>
+        <div id="propBarReclamos"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Propiedades con mayor gasto</div>
+        <div id="propBarGasto"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /tab-propiedades -->
 <footer>
   <div class="fl">Administraciones de la Patagonia · Sistema de Gestión Integral · Neuquén</div>
   <div class="fr" id="ftr">—</div>
@@ -637,6 +781,8 @@ function renderAll(d){
 
   // Tables
   tProv(d); tRubro(d);
+  // Si pestaña propiedades está activa, actualizar
+  if(document.getElementById("tab-propiedades").style.display!=="none") renderProps();
 }
 
 // ── BARS ──────────────────────────────────────────────────────
