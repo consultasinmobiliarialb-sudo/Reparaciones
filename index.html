@@ -164,7 +164,7 @@ Seguí el archivo <code>INSTRUCCIONES.md</code> paso a paso.</p></div>
 // ╔══════════════════════════════════════════════════════════╗
 // ║  PASO ÚNICO: pegá aquí la URL del Apps Script           ║
 // ╚══════════════════════════════════════════════════════════╝
-const API_URL = "https://script.google.com/macros/s/AKfycbyA66EYnyA0XsPGxO_JVf8fKVp413oPieMyXMfHuFzzczjbB9eleduG4s_5v3Y3JrV2dg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbylSnKcV-3AtoSbsitSh_Ht6IDwSYzB9FxpWoXJ0HvvJALm0FsycJT0qbAdLSAwf-1v7A/exec";
 
 const PAL=['#D4AF37','#1F6C43','#e8c84a','#2a8f59','#a88a25','#4ade80','#f0c060','#3db870','#ffd060','#138033','#e8a020','#0a6030'];
 const CATS={'Caldera / Calefacción':['caldera','calefon','calefactor','radiador','bomba presurizadora','recirculacion','recirculación'],'Plomería':['plomeria','canilla','perdida de agua','pérdida de agua','caño','cañeria','desgote','desagote','destape','inodoro','cisterna','bidet','monocomando','pluvial','lavadero','bacha'],'Electricidad':['electri','tomacorriente','disyuntor','enchufe'],'Humedad / Filtraciones':['humedad','filtracion','filtración','techo'],'Albañilería':['piso','pared','durlock','baldosa','cemento','azulejo','revoque','albañil','cielo razo'],'Carpintería':['puerta','ventana','cerradura','visagra','bajo mesada','placar','marco'],'Herrería':['reja','herrer'],'Pintura':['pint'],'Gas / Hornallas':['hornalla','gas ']};
@@ -173,19 +173,24 @@ let raw=[],charts={};
 function tick(){document.getElementById('stime').textContent=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
 tick();setInterval(tick,1000);
 if(API_URL==="PEGAR_URL_DEL_APPS_SCRIPT_AQUI")document.getElementById('cfgBanner').style.display='block';
-async function load(){
+function load(){
   if(API_URL==="PEGAR_URL_DEL_APPS_SCRIPT_AQUI")return;
   setLoad(true);
-  try{
-    const res=await fetch(API_URL,{redirect:'follow'});
-    const json=await res.json();
-    if(!json.ok)throw new Error(json.error||'Error en API');
+  const old=document.getElementById('_jsonp');
+  if(old)old.remove();
+  window._lbCb=function(json){
+    setLoad(false);
+    if(!json.ok){document.getElementById('slbl').textContent='⚠ ERROR: '+(json.error||'desconocido');return;}
     raw=json.data;fillFilters();go();
     const n=new Date().toLocaleTimeString('es-AR');
-    document.getElementById('slbl').textContent=`SYNC · ${n} · ${json.total} filas`;
-    document.getElementById('ftr').textContent=`DATOS: ${n} | PRÓXIMA ACT: ${new Date(Date.now()+5*60000).toLocaleTimeString('es-AR')}`;
-  }catch(e){document.getElementById('slbl').textContent='⚠ ERROR: '+e.message;console.error(e);}
-  setLoad(false);
+    document.getElementById('slbl').textContent='SYNC · '+n+' · '+json.total+' filas';
+    document.getElementById('ftr').textContent='DATOS: '+n+' | PRÓXIMA ACT: '+new Date(Date.now()+5*60000).toLocaleTimeString('es-AR');
+  };
+  const s=document.createElement('script');
+  s.id='_jsonp';
+  s.src=API_URL+'?callback=_lbCb&t='+Date.now();
+  s.onerror=function(){setLoad(false);document.getElementById('slbl').textContent='⚠ Error al conectar con la API';};
+  document.body.appendChild(s);
 }
 function setLoad(on){document.getElementById('ldr').classList.toggle('on',on);document.getElementById('bsp').style.display=on?'block':'none';}
 function fillFilters(){
