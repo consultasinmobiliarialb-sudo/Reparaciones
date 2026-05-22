@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administraciones de la Patagonia · Dashboard Consolidado</title>
+    <title>Administraciones de la Patagonia · Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -14,15 +14,15 @@
         .kpi-card { background: white; border-radius: var(--radius); border-top: 4px solid var(--green); transition: all 0.3s; }
         .tab-btn { border-bottom: 3px solid transparent; color: #8aab96; font-weight: 600; }
         .tab-btn.active { border-bottom-color: var(--green); color: var(--green); }
-        .badge-actual { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
-        .badge-hist { background: #f1f5f9; color: #475569; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+        .badge-actual { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold;}
+        .badge-hist { background: #f1f5f9; color: #475569; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold;}
     </style>
 </head>
 <body class="antialiased">
 
-    <div id="loader" class="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center hidden">
+    <div id="loader" class="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
         <div class="w-12 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs">Sincronizando Archivos...</p>
+        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs">Sincronizando con Neuquén...</p>
     </div>
 
     <!-- HEADER -->
@@ -30,9 +30,9 @@
         <div class="max-w-[1400px] mx-auto flex justify-between items-center">
             <div>
                 <h1 class="font-head text-2xl">ADMINISTRACIONES DE LA <span class="text-[#D4AF37]">PATAGONIA</span></h1>
-                <p class="text-[10px] uppercase tracking-widest opacity-70">Sistema de Gestión Consolidado (Actual + Histórico)</p>
+                <p class="text-[10px] uppercase tracking-widest opacity-70 italic">Proptech Division · Gestión Consolidada</p>
             </div>
-            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ ACTUALIZAR DATOS</button>
+            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ ACTUALIZAR</button>
         </div>
     </header>
 
@@ -47,7 +47,7 @@
 
     <main class="max-w-[1400px] mx-auto p-8">
 
-        <!-- FILTROS ESTRATÉGICOS -->
+        <!-- FILTROS -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 flex flex-wrap gap-6 items-end">
             <div class="min-w-[200px]">
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Fuente de Datos</label>
@@ -61,120 +61,79 @@
                 <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Año</label>
                 <select id="fYear" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm"></select>
             </div>
-            <div class="min-w-[150px]">
-                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Estado</label>
-                <select id="fStatus" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm">
-                    <option value="all">Todos los estados</option>
-                    <option value="Terminado" selected>Terminado</option>
-                    <option value="En Proceso">En Proceso</option>
-                </select>
-            </div>
             <div class="ml-auto text-right">
                 <p id="countLabel" class="text-3xl font-black text-green-700">0</p>
-                <p class="text-[10px] uppercase font-bold text-gray-400">Registros encontrados</p>
+                <p class="text-[10px] uppercase font-bold text-gray-400">Registros</p>
             </div>
         </div>
 
-        <!-- SECCIÓN DASHBOARD -->
+        <!-- VISTAS -->
         <div id="view-dash">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="kpi-card p-6 shadow-sm">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Inversión Gestionada</p>
-                    <h2 id="kpi-total" class="text-3xl font-black text-green-800 mt-1">$ 0</h2>
-                </div>
-                <div class="kpi-card p-6 shadow-sm">
-                    <p class="text-xs font-bold text-gray-400 uppercase">SLA Promedio</p>
-                    <h2 id="kpi-sla" class="text-3xl font-black text-amber-700 mt-1">0 d</h2>
-                </div>
-                <div class="kpi-card p-6 shadow-sm">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Ticket Medio</p>
-                    <h2 id="kpi-avg" class="text-3xl font-black text-blue-800 mt-1">$ 0</h2>
-                </div>
-                <div class="kpi-card p-6 shadow-sm">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Casos Críticos</p>
-                    <h2 id="kpi-urg" class="text-3xl font-black text-red-700 mt-1">0</h2>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="kpi-card p-6 shadow-sm"><p class="text-xs font-bold text-gray-400 uppercase">Inversión Total</p><h2 id="kpi-total" class="text-3xl font-black text-green-800">$ 0</h2></div>
+                <div class="kpi-card p-6 shadow-sm"><p class="text-xs font-bold text-gray-400 uppercase">SLA Promedio</p><h2 id="kpi-sla" class="text-3xl font-black text-amber-700">0 d</h2></div>
+                <div class="kpi-card p-6 shadow-sm"><p class="text-xs font-bold text-gray-400 uppercase">Urgencia Alta</p><h2 id="kpi-urg" class="text-3xl font-black text-red-700">0</h2></div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Gasto por Rubro</h3>
-                    <canvas id="chartRubros" height="300"></canvas>
+                    <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest text-center">Gasto por Rubro</h3>
+                    <div class="h-64"><canvas id="chartRubros"></canvas></div>
                 </div>
                 <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <h3 class="font-bold text-gray-700 mb-4 uppercase text-xs tracking-widest">Resumen de Inversión por Categoría</h3>
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
-                            <tr><th>Rubro</th><th class="text-right">Cant.</th><th class="text-right">Total</th></tr>
-                        </thead>
-                        <tbody id="bodyRubrosTable"></tbody>
-                    </table>
+                    <h3 class="font-bold text-gray-700 mb-4 uppercase text-xs tracking-widest">Resumen Financiero</h3>
+                    <table class="w-full text-sm"><tbody id="bodyRubrosTable"></tbody></table>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN PROPIEDADES -->
         <div id="view-props" class="hidden">
             <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar propiedad o propietario..." class="w-full border border-gray-200 rounded-lg p-3 mb-6 outline-none focus:ring-2 focus:ring-green-500">
+                <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar propiedad..." class="w-full border rounded-lg p-3 mb-6 outline-none focus:ring-2 focus:ring-green-500">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm" id="tableProps">
                         <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
-                            <tr>
-                                <th>Fuente</th>
-                                <th>Dirección</th>
-                                <th>Propietario</th>
-                                <th class="text-center">Arreglos</th>
-                                <th class="text-right">Inversión Acum.</th>
-                                <th>Rubro Principal</th>
-                            </tr>
+                            <tr><th>Fuente</th><th>Dirección</th><th>Propietario</th><th class="text-center">Cant.</th><th class="text-right">Total</th><th>Rubro</th></tr>
                         </thead>
-                        <tbody id="bodyProps" class="divide-y divide-gray-100"></tbody>
+                        <tbody id="bodyProps" class="divide-y"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN CONTRATISTAS -->
         <div id="view-provs" class="hidden">
             <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Ranking de Contratistas</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
-                            <tr>
-                                <th>Proveedor</th>
-                                <th>Especialidad</th>
-                                <th>Rating</th>
-                                <th class="text-center">Trabajos</th>
-                                <th class="text-right">Total Facturado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyProvs" class="divide-y divide-gray-100"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
+                        <tr><th>Proveedor</th><th>Especialidad</th><th>Rating</th><th class="text-center">Trabajos</th><th class="text-right">Total</th></tr>
+                    </thead>
+                    <tbody id="bodyProvs" class="divide-y"></tbody>
+                </table>
             </div>
         </div>
 
     </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxqGnBQHBOAm_eMQIU4stZZtZdavFZLIilDYfVa-RntV13VQGXUXURqfZTExx3Ua7NU_g/exec";
         let rawData = [], filtered = [], providers = [], charts = {};
 
-        async function loadData() {
+        function loadData() {
             toggleLoader(true);
-            try {
-                const res = await fetch(`${API_URL}?t=${Date.now()}`);
-                const json = await res.json();
-                if(json.ok) {
-                    rawData = json.reclamos;
-                    providers = json.proveedores;
-                    initFilters();
-                    applyFilters();
-                }
-            } catch (e) { alert("Error de conexión"); }
-            finally { toggleLoader(false); }
+            // Uso de protocolo nativo de Google Apps Script
+            google.script.run
+                .withSuccessHandler(function(res) {
+                    if(res.ok) {
+                        rawData = res.reclamos;
+                        providers = res.proveedores;
+                        initFilters();
+                        applyFilters();
+                    }
+                    toggleLoader(false);
+                })
+                .withFailureHandler(function(err) {
+                    alert("Error al obtener datos: " + err);
+                    toggleLoader(false);
+                })
+                .getDashboardData();
         }
 
         function initFilters() {
@@ -185,14 +144,12 @@
         function applyFilters() {
             const source = document.getElementById('fSource').value;
             const year = document.getElementById('fYear').value;
-            const status = document.getElementById('fStatus').value;
 
             filtered = rawData.filter(r => {
                 const [m, y] = (r['Mes']||'').split('-');
                 const matchSrc = source === 'all' || r._origen === source;
                 const matchY = year === 'all' || y === year;
-                const matchS = status === 'all' || r['Estado Reparacion'] === status;
-                return matchSrc && matchY && matchS && r['Estado Reparacion'] !== 'Pedido Duplicado' && r['DIRECCION'];
+                return matchSrc && matchY && r['DIRECCION'] && r['Estado Reparacion'] !== 'Pedido Duplicado';
             });
 
             renderDashboard();
@@ -208,7 +165,6 @@
                 const mo = parseFloat(r['Mano de Obra']) || 0;
                 const mat = parseFloat(r['Materiales']) || 0;
                 total += (mo + mat);
-                
                 if((r['Urgencia']||'').includes('Alta')) urgentes++;
 
                 const dRec = r['Recepción Reclamo'] ? new Date(r['Recepción Reclamo']) : null;
@@ -225,12 +181,11 @@
 
             document.getElementById('kpi-total').innerText = fmt(total);
             document.getElementById('kpi-sla').innerText = slaCount ? (slaTotal/slaCount).toFixed(1) + ' d' : '--';
-            document.getElementById('kpi-avg').innerText = filtered.length ? fmt(total/filtered.length) : '$ 0';
             document.getElementById('kpi-urg').innerText = urgentes;
             document.getElementById('countLabel').innerText = filtered.length;
 
-            renderRubrosTable(rubros);
             updateChart(rubros);
+            renderRubrosTable(rubros);
         }
 
         function renderProperties() {
@@ -245,12 +200,12 @@
 
             document.getElementById('bodyProps').innerHTML = Object.values(props).sort((a,b)=>b.val-a.val).map(p => `
                 <tr>
-                    <td><span class="${p.src === 'ACTUAL' ? 'badge-actual' : 'badge-hist'}">${p.src}</span></td>
-                    <td class="font-bold">${p.dir}</td>
-                    <td class="text-gray-500 text-xs">${p.prop}</td>
-                    <td class="text-center">${p.n}</td>
-                    <td class="text-right font-bold text-green-700">${fmt(p.val)}</td>
-                    <td><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded">${p.rub}</span></td>
+                    <td class="px-4 py-3"><span class="${p.src === 'ACTUAL' ? 'badge-actual' : 'badge-hist'}">${p.src}</span></td>
+                    <td class="px-4 py-3 font-bold">${p.dir}</td>
+                    <td class="px-4 py-3 text-xs opacity-60">${p.prop}</td>
+                    <td class="px-4 py-3 text-center font-bold">${p.n}</td>
+                    <td class="px-4 py-3 text-right font-black text-green-700">${fmt(p.val)}</td>
+                    <td class="px-4 py-3 text-xs uppercase font-bold text-blue-500">${p.rub}</td>
                 </tr>
             `).join('');
         }
@@ -268,25 +223,23 @@
                 const s = pStats[p['Nombre']] || { n: 0, val: 0 };
                 return `
                     <tr>
-                        <td class="font-bold">${p['Nombre']}</td>
-                        <td class="text-xs text-gray-400 uppercase">${p['Especialidad Principal']}</td>
-                        <td class="text-amber-500">${'⭐'.repeat(p['Calificacion'])}</td>
-                        <td class="text-center">${s.n}</td>
-                        <td class="text-right font-bold text-green-700">${fmt(s.val)}</td>
+                        <td class="px-4 py-3 font-bold text-green-900">${p['Nombre']}</td>
+                        <td class="px-4 py-3 text-[10px] text-gray-400 uppercase">${p['Especialidad Principal']}</td>
+                        <td class="px-4 py-3 text-amber-500">${'⭐'.repeat(p['Calificacion'])}</td>
+                        <td class="px-4 py-3 text-center font-bold">${s.n}</td>
+                        <td class="px-4 py-3 text-right font-bold text-green-700">${fmt(s.val)}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // UTILS
         function detectRubro(d) {
             const s = (d||'').toLowerCase();
-            if(s.includes('caldera') || s.includes('radiador')) return 'Calefacción';
-            if(s.includes('agua') || s.includes('canilla') || s.includes('baño')) return 'Plomería';
-            if(s.includes('gas') || s.includes('cocina')) return 'Gas';
+            if(s.includes('caldera')) return 'Calefacción';
+            if(s.includes('agua') || s.includes('bacha')) return 'Plomería';
             if(s.includes('luz') || s.includes('enchufe')) return 'Electricidad';
-            if(s.includes('humedad') || s.includes('pintura')) return 'Humedad/Pintura';
-            return 'Mantenimiento';
+            if(s.includes('pintura') || s.includes('humedad')) return 'Humedad';
+            return 'Varios';
         }
 
         function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n); }
@@ -298,7 +251,7 @@
                 type: 'bar',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data).map(x => x.val), backgroundColor: '#1F6C43' }]
+                    datasets: [{ data: Object.values(data).map(x => x.val), backgroundColor: '#1F6C43', borderRadius: 8 }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
@@ -306,7 +259,7 @@
 
         function renderRubrosTable(data) {
             document.getElementById('bodyRubrosTable').innerHTML = Object.entries(data).sort((a,b)=>b[1].val-a[1].val).map(([k,v])=>`
-                <tr><td class="py-2 font-bold text-gray-600">${k}</td><td class="text-right">${v.n}</td><td class="text-right font-bold text-green-700">${fmt(v.val)}</td></tr>
+                <tr class="border-b"><td class="py-2 font-bold">${k}</td><td class="text-right text-green-700 font-bold">${fmt(v.val)}</td></tr>
             `).join('');
         }
 
