@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Proptech | Patagonia</title>
+    <title>SLA Dashboard | Administraciones de la Patagonia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --green: #1F6C43; --gold: #D4AF37; --bg: #F1F5F9; }
+        :root { --green: #1F6C43; --gold: #D4AF37; --bg: #F8FAFC; }
         body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: #1e293b; }
         .font-head { font-family: 'Playfair Display', serif; }
         .kpi-card { background: white; border-radius: 12px; border-bottom: 4px solid var(--green); transition: all 0.3s; }
@@ -20,8 +20,8 @@
 <body class="antialiased">
 
     <div id="loader" class="fixed inset-0 flex flex-col items-center justify-center">
-        <div class="w-16 h-16 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs tracking-widest">Sincronizando Patagonia Engine...</p>
+        <div class="w-16 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-[10px]">Cargando Sistema Intelligence...</p>
     </div>
 
     <!-- HEADER -->
@@ -29,18 +29,18 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="font-head text-3xl">ADMINISTRACIONES DE LA <span class="text-[#D4AF37]">PATAGONIA</span></h1>
-                <p class="text-[10px] uppercase tracking-[0.3em] opacity-80 font-bold">Business Intelligence Division</p>
+                <p class="text-[10px] uppercase tracking-[0.3em] opacity-80 font-bold">Proptech Business Intelligence</p>
             </div>
-            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ REFRESCAR DATOS</button>
+            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ ACTUALIZAR</button>
         </div>
     </header>
 
-    <!-- TABS -->
+    <!-- NAVEGACIÓN -->
     <nav class="bg-white border-b sticky top-[88px] z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-8 flex gap-10">
-            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-5 uppercase text-xs">📊 Dashboard</button>
-            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-5 uppercase text-xs">🏠 Propiedades</button>
-            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-5 uppercase text-xs">👷 Proveedores</button>
+            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-5 uppercase text-[11px] tracking-wider">📊 Dashboard</button>
+            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-5 uppercase text-[11px] tracking-wider">🏠 Propiedades</button>
+            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-5 uppercase text-[11px] tracking-wider">👷 Proveedores</button>
         </div>
     </nav>
 
@@ -49,55 +49,36 @@
         <!-- FILTROS -->
         <section class="bg-white p-6 rounded-xl shadow-md border mb-8 flex flex-wrap gap-8 items-end">
             <div class="w-64">
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Fuente de Datos</label>
-                <select id="fSource" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-bold text-green-900">
-                    <option value="all">📁 CONSOLIDADO (TODO)</option>
-                    <option value="ACTUAL" selected>⚡ RECLAMOS ACTUALES</option>
-                    <option value="HISTORICO">📜 ARCHIVO GENERAL (HISTÓRICO)</option>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 italic">Fuente de Datos</label>
+                <select id="fSource" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-bold text-green-900 shadow-inner">
+                    <option value="all">📂 TODO EL HISTORIAL (FUSIONADO)</option>
+                    <option value="ACTUAL" selected>⚡ RECLAMOS ACTUALES 2025/26</option>
+                    <option value="HISTORICO">📜 ARCHIVO (GENERAL)</option>
                 </select>
             </div>
             <div class="w-48">
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Filtrar por Rubro</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2 italic">Filtrar por Rubro</label>
                 <select id="fRubro" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-semibold"></select>
             </div>
             <div class="ml-auto text-right">
-                <p id="countLabel" class="text-4xl font-black text-green-700">0</p>
-                <p class="text-[10px] uppercase font-bold text-slate-400">Arreglos Detectados</p>
+                <p id="countLabel" class="text-4xl font-black text-green-700 leading-none">0</p>
+                <p class="text-[10px] uppercase font-bold text-slate-400">Registros</p>
             </div>
         </section>
 
         <!-- SECCIÓN 1: DASHBOARD -->
         <div id="view-dash" class="space-y-10">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="kpi-card p-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Inversión Total</p>
-                    <h2 id="kpi-total" class="text-2xl font-black text-green-800 mt-1">$ 0</h2>
-                </div>
-                <div class="kpi-card p-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Mano de Obra</p>
-                    <h2 id="kpi-mo" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2>
-                </div>
-                <div class="kpi-card p-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">Materiales</p>
-                    <h2 id="kpi-mat" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2>
-                </div>
-                <div class="kpi-card p-6 border-amber-500">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">SLA Gestión</p>
-                    <h2 id="kpi-sla" class="text-2xl font-black text-amber-700 mt-1">-- d</h2>
-                </div>
+                <div class="kpi-card p-6"><p class="text-[10px] font-bold text-slate-400 uppercase">Inversión Total</p><h2 id="kpi-total" class="text-2xl font-black text-green-800 mt-1">$ 0</h2></div>
+                <div class="kpi-card p-6"><p class="text-[10px] font-bold text-slate-400 uppercase">Mano de Obra</p><h2 id="kpi-mo" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2></div>
+                <div class="kpi-card p-6"><p class="text-[10px] font-bold text-slate-400 uppercase">Materiales</p><h2 id="kpi-mat" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2></div>
+                <div class="kpi-card p-6 border-amber-500"><p class="text-[10px] font-bold text-slate-400 uppercase">SLA Gestión</p><h2 id="kpi-sla" class="text-2xl font-black text-amber-700 mt-1">-- d</h2></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest text-center">Inversión por Rubro</h3>
-                    <div class="h-80"><canvas id="chartRubros"></canvas></div>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest text-center">Gasto Acumulado</h3>
-                    <table class="w-full text-sm">
-                        <thead class="text-[10px] text-slate-400 uppercase font-black">
-                            <tr><th class="text-left pb-4">Categoría</th><th class="text-right pb-4">Total Invertido</th></tr>
-                        </thead>
+                <div class="bg-white p-8 rounded-2xl border shadow-sm"><h3 class="font-bold text-slate-700 mb-6 uppercase text-xs text-center tracking-widest">Inversión por Categoría</h3><div class="h-72"><canvas id="chartRubros"></canvas></div></div>
+                <div class="bg-white p-8 rounded-2xl border shadow-sm"><h3 class="font-bold text-slate-700 mb-6 uppercase text-xs text-center tracking-widest">Desglose Financiero</h3>
+                    <table class="w-full text-sm"><thead class="text-[10px] text-slate-400 uppercase font-black"><tr><th class="text-left pb-4">Rubro</th><th class="text-right pb-4">Invertido</th></tr></thead>
                         <tbody id="bodyFinancialTable" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
@@ -108,15 +89,13 @@
         <div id="view-props" class="hidden">
             <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
                 <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                    <h3 class="font-head text-xl text-green-900 font-bold tracking-tight">Auditoría Técnica por Domicilio</h3>
+                    <h3 class="font-head text-xl text-green-900 font-bold">Auditoría Técnica por Domicilio</h3>
                     <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar dirección..." class="border rounded-lg px-4 py-2 text-sm w-80 outline-none focus:ring-2 focus:ring-green-500">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm" id="tableProps">
                         <thead class="bg-slate-100 uppercase text-[10px] text-slate-500 font-black">
-                            <tr>
-                                <th class="px-6 py-4">Ficha</th><th class="px-6 py-4">Dirección</th><th class="px-6 py-4">M. Obra</th><th class="px-6 py-4">Materiales</th><th class="px-6 py-4 text-right">Inversión</th><th class="px-6 py-4">Rubro</th>
-                            </tr>
+                            <tr><th class="px-6 py-4">Status</th><th class="px-6 py-4">Dirección</th><th class="px-6 py-4">M. Obra</th><th class="px-6 py-4">Materiales</th><th class="px-6 py-4 text-right">Inversión</th><th class="px-6 py-4">Rubro</th></tr>
                         </thead>
                         <tbody id="bodyProps" class="divide-y divide-slate-100"></tbody>
                     </table>
@@ -127,22 +106,27 @@
         <!-- SECCIÓN 3: PROVEEDORES -->
         <div id="view-provs" class="hidden">
             <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
+                <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                    <h3 class="font-head text-xl text-green-900 font-bold">Performance de Proveedores</h3>
+                </div>
                 <table class="w-full text-left text-sm">
                     <thead class="bg-slate-100 uppercase text-[10px] text-slate-500 font-black">
-                        <tr><th class="px-6 py-4">Proveedor</th><th class="px-6 py-4">Especialidad</th><th class="px-6 py-4 text-center">Calidad</th><th class="px-6 py-4 text-center font-bold">Trabajos</th><th class="px-6 py-4 text-right font-black">Facturación Total</th></tr>
+                        <tr><th class="px-6 py-4">Nombre</th><th class="px-6 py-4">Especialidad</th><th class="px-6 py-4 text-center">Calificación</th><th class="px-6 py-4 text-center">Cant. Trabajos</th><th class="px-6 py-4 text-right font-black">Total Gestionado</th></tr>
                     </thead>
                     <tbody id="bodyProvs" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
-
     </main>
 
     <script>
-        // REEMPLAZAR CON TU URL REAL
-        const API_URL = "https://script.google.com/macros/s/AKfycbzYjYX1RVqAFN4WjiUNiUQWq6TLK4Eg8RlL3YvSNyuaCN9Gi0I-3zcmgSiJR0Em5SDQag/exec";
+        // PEGA TU URL DE IMPLEMENTACIÓN AQUÍ
+        const API_URL = "https://script.google.com/macros/s/AKfycbxMaNfJvnpeUHopA2WH1rjh_idf04zNpJDuStxVFbrAttkiGwvitY6ixWzU5MCb__F37g/exec";
         
         let rawData = [], filtered = [], providers = [], charts = {};
+
+        // Función de seguridad para evitar errores "null"
+        function safeSet(id, val) { const el = document.getElementById(id); if(el) el.innerText = val; }
 
         function loadData() {
             document.getElementById('loader').classList.remove('hidden');
@@ -158,7 +142,7 @@
                 providers = res.proveedores;
                 initFilters();
                 applyFilters();
-            } else { alert("Error de Datos: " + res.error); }
+            }
         }
 
         function initFilters() {
@@ -206,21 +190,17 @@
                 rubros[rub] += t;
             });
 
-            const setKPI = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
-            setKPI('kpi-total', fmt(total));
-            setKPI('kpi-mo', fmt(moTotal));
-            setKPI('kpi-mat', fmt(matTotal));
-            setKPI('kpi-sla', slaCount ? (slaSum/slaCount).toFixed(1) + ' d' : '--');
-            setKPI('countLabel', filtered.length);
+            safeSet('kpi-total', fmt(total));
+            safeSet('kpi-mo', fmt(moTotal));
+            safeSet('kpi-mat', fmt(matTotal));
+            safeSet('kpi-sla', slaCount ? (slaSum/slaCount).toFixed(1) + ' d' : '--');
+            safeSet('countLabel', filtered.length);
 
             updateChart(rubros);
-            const financialTable = document.getElementById('bodyFinancialTable');
-            if(financialTable) {
-                financialTable.innerHTML = Object.entries(rubros).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-3 font-bold text-slate-600 uppercase text-[10px]">${k}</td>
-                        <td class="text-right text-green-700 font-black">${fmt(v)}</td>
-                    </tr>
+            const finTable = document.getElementById('bodyFinancialTable');
+            if(finTable) {
+                finTable.innerHTML = Object.entries(rubros).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+                    <tr class="hover:bg-slate-50 transition"><td class="py-3 font-bold text-slate-600 uppercase text-[10px]">${k}</td><td class="text-right text-green-700 font-black">${fmt(v)}</td></tr>
                 `).join('');
             }
         }
@@ -229,13 +209,11 @@
             const props = {};
             filtered.forEach(r => {
                 const dir = (r['DIRECCION'] || 'S/D').trim();
-                if(!props[dir]) props[dir] = { dir, prop: r['PROPIETARIO'], n: 0, mo: 0, mat: 0, val: 0, rub: '', src: r._origen };
+                if(!props[dir]) props[dir] = { dir, n: 0, mo: 0, mat: 0, val: 0, rub: '', src: r._origen };
                 props[dir].n++;
                 const mo = parseFloat(r['Mano de Obra']) || 0;
                 const mat = parseFloat(r['Materiales']) || 0;
-                props[dir].mo += mo;
-                props[dir].mat += mat;
-                props[dir].val += (mo + mat);
+                props[dir].mo += mo; props[dir].mat += mat; props[dir].val += (mo + mat);
                 props[dir].rub = detectRubro(r['PEDIDO DE REPARACION']);
             });
 
@@ -257,7 +235,7 @@
         function renderProviders() {
             const pStats = {};
             filtered.forEach(r => {
-                const p = (r['Contratista Asignado'] || 'S/ Asignar').trim();
+                const p = (r['Contratista Asignado'] || 'Sin Asignar').trim();
                 if(!pStats[p]) pStats[p] = { n: 0, val: 0 };
                 pStats[p].n++;
                 pStats[p].val += (parseFloat(r['Mano de Obra']) || 0) + (parseFloat(r['Materiales']) || 0);
@@ -266,13 +244,13 @@
             const bodyProvs = document.getElementById('bodyProvs');
             if(bodyProvs) {
                 bodyProvs.innerHTML = providers.map(p => {
-                    const name = p['Nombre'] || 'S/D';
+                    const name = p['Nombre'] || '---';
                     const s = pStats[name] || { n: 0, val: 0 };
                     const stars = "⭐".repeat(parseInt(p['Calificacion']) || 0);
                     return `
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-6 py-4 font-bold text-slate-800">${name}</td>
-                            <td class="px-6 py-4 text-[10px] text-gray-400 uppercase font-black tracking-widest">${p['Especialidad Principal'] || '---'}</td>
+                            <td class="px-6 py-4 text-[10px] text-slate-400 uppercase font-black">${p['Especialidad Principal'] || '---'}</td>
                             <td class="px-6 py-4 text-amber-500 text-lg text-center">${stars || '--'}</td>
                             <td class="px-6 py-4 text-center font-black text-slate-700">${s.n}</td>
                             <td class="px-6 py-4 text-right font-black text-green-800 font-mono">${fmt(s.val)}</td>
@@ -282,36 +260,31 @@
             }
         }
 
-        // UTILS
         function parseDate(s) {
             if(!s || typeof s !== 'string') return null;
-            const parts = s.split(/[-/]/);_
+            const parts = s.split(/[-/]/);
             if(parts.length < 3) return null;
             return new Date(parts[0].length === 4 ? parts[0] : parts[2], parts[1]-1, parts[0].length === 4 ? parts[2] : parts[0]);
         }
 
         function detectRubro(d) {
             const s = (d||'').toLowerCase();
-            if(s.includes('caldera') || s.includes('calefactor')) return 'CALEFACCIÓN';
-            if(s.includes('agua') || s.includes('bacha') || s.includes('plom') || s.includes('baño')) return 'PLOMERÍA';
-            if(s.includes('luz') || s.includes('elect') || s.includes('enchufe')) return 'ELECTRICIDAD';
-            if(s.includes('pintura') || s.includes('humedad') || s.includes('techo') || s.includes('filtracion')) return 'INFRAESTRUCTURA';
+            if(s.includes('caldera') || s.includes('calefactor') || s.includes('radiador')) return 'CALEFACCIÓN';
+            if(s.includes('agua') || s.includes('bacha') || s.includes('plom') || s.includes('inodoro')) return 'PLOMERÍA';
+            if(s.includes('luz') || s.includes('elect') || s.includes('termica')) return 'ELECTRICIDAD';
+            if(s.includes('pintura') || s.includes('humedad') || s.includes('filtracion')) return 'ESTRUCTURA';
             return 'GENERAL';
         }
 
         function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n || 0); }
 
         function updateChart(data) {
-            if(charts.rub) charts.rub.destroy();
             const canvas = document.getElementById('chartRubros');
             if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            charts.rub = new Chart(ctx, {
+            if(charts.rub) charts.rub.destroy();
+            charts.rub = new Chart(canvas.getContext('2d'), {
                 type: 'bar',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data), backgroundColor: '#1F6C43', borderRadius: 8 }]
-                },
+                data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: '#1F6C43', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
