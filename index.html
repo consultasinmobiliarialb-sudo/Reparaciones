@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administraciones de la Patagonia · Panel de Control Operativo</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{--green:#1F6C43;--green-l:#2d8a57;--green-xl:#e8f5ee;--green-bg:#f2faf5;--gold:#D4AF37;--gold-l:#f5e27a;--white:#ffffff;--bg:#f7f8f6;--surface:#ffffff;--border:#e2e8e4;--border-g:rgba(31,108,67,0.15);--text:#1a2e22;--text2:#4a6555;--text3:#8aab96;--shadow:0 2px 12px rgba(31,108,67,0.08);--shadow-lg:0 8px 32px rgba(31,108,67,0.12);--radius:14px;--font-head:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3',sans-serif;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.5;}
+@keyframes sp{to{transform:rotate(360deg)}}
 header{background:var(--green);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;box-shadow:0 2px 16px rgba(31,108,67,0.25);position:sticky;top:0;z-index:100;}
 .brand-name{font-family:var(--font-head);font-size:20px;color:#fff;line-height:1;}
 .brand-name span{color:var(--gold);}
@@ -58,13 +58,6 @@ select:hover,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31
 .card-title::before{content:'';display:inline-block;width:4px;height:18px;background:linear-gradient(180deg,var(--green),var(--gold));border-radius:2px;}
 .section-label{font-family:var(--font-head);font-size:20px;color:var(--green);padding:8px 0 4px;border-bottom:2px solid var(--border-g);margin-bottom:4px;margin-top:10px;}
 
-/* BARS */
-.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:13px;}
-.bar-lbl{font-size:13px;font-weight:500;color:var(--text);min-width:145px;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bar-track{flex:1;height:8px;background:var(--green-xl);border-radius:4px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:4px;transition:width .8s;}
-.bar-val{font-size:13px;font-weight:600;color:var(--green);min-width:82px;text-align:right;}
-
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .stat-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
 .stat-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:5px;}
@@ -83,7 +76,6 @@ tbody tr:hover td{background:var(--green-bg);}
 .b-r{background:#fee2e2;color:#b91c1c;}
 .nodata{color:var(--text3);font-size:14px;padding:24px 0;text-align:center;}
 .rubro-tag{display:inline-block;background:var(--green-xl);color:var(--green);border-radius:100px;padding:2px 9px;font-size:11px;font-weight:600;}
-
 #propSearch{width:100%;padding:11px 16px;border:1.5px solid var(--border-g);border-radius:8px;background:var(--green-bg);font-family:var(--font-body);outline:none;margin-bottom:16px;}
 
 /* MATRIZ PROVEEDORES CARDS */
@@ -102,7 +94,6 @@ tbody tr:hover td{background:var(--green-bg);}
 #loader{display:none;position:fixed;inset:0;background:rgba(247,248,246,0.9);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 #loader.on{display:flex;}
 .loader-ring{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite;}
-
 footer{background:var(--green);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;color:rgba(255,255,255,0.6);font-size:12px;}
 </style>
 </head>
@@ -213,7 +204,7 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
 const API_URL = "https://script.google.com/macros/s/AKfycbzlkjmA0gwWdFsSqXG84FU8aHqJHngv1FY5VNfzCC1Q3Q0MDv2q2NBPDhL9CnjyFDzv9w/exec";
 
 let store = { general: [], reclamos: [], proveedores: [] };
-let ch = {}, propData = {};
+let propData = {};
 
 function tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('es-AR');}
 tick(); setInterval(tick, 1000);
@@ -222,46 +213,69 @@ function switchTab(tab){
   document.getElementById('tab-reclamos').style.display = tab==='reclamos' ? '' : 'none';
   document.getElementById('tab-propiedades').style.display = tab==='propiedades' ? '' : 'none';
   document.getElementById('tab-proveedores').style.display = tab==='proveedores' ? '' : 'none';
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(tab==='reclamos' && i===0) || (tab==='propiedades' && i===1) || (tab==='proveedores' && i===2)));
+  
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){
+      b.classList.toggle('active', (tab==='reclamos' && i===0) || (tab==='propiedades' && i===1) || (tab==='proveedores' && i===2));
+  });
+  
   if(tab==='propiedades') renderProps();
   if(tab==='proveedores') renderProveedores();
 }
 
 function load(){
   document.getElementById('loader').classList.add('on');
-  const old=document.getElementById('_jsonp_v2'); if(old) old.remove();
+  const old=document.getElementById('_jsonp_v2'); 
+  if(old) old.remove();
+  
   window._lbCb = function(json){
     document.getElementById('loader').classList.remove('on');
     if(!json.ok){ alert('Error en sincronización'); return; }
+    
     store.general = json.data.general || [];
     store.reclamos = json.data.reclamos || [];
     store.proveedores = json.data.proveedores || [];
+    
     fillFilters();
     go();
+    
     const timeStr = new Date().toLocaleTimeString('es-AR');
     document.getElementById('syncLbl').textContent = 'Sincronizado ' + timeStr;
     document.getElementById('slbl').textContent = store.reclamos.length + ' actuales / ' + store.general.length + ' históricos';
     document.getElementById('ftr').textContent = 'Última actualización de la base: ' + timeStr;
   };
-  const s=document.createElement('script'); s.id='_jsonp_v2';
+  
+  const s=document.createElement('script'); 
+  s.id='_jsonp_v2';
   s.src=API_URL+'?callback=_lbCb&t='+Date.now();
   document.body.appendChild(s);
 }
 
 function fillFilters(){
   const ys=new Set(), ms=new Set();
-  store.general.forEach(r=>{ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
-  store.reclamos.forEach(r=>{ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
+  store.general.forEach(function(r){ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
+  store.reclamos.forEach(function(r){ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
+  
   const MN=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const yel=document.getElementById('yf'); yel.innerHTML='<option value="all">Todos los años</option>';
-  [...ys].sort((a,b)=>b-a).forEach(v=>yel.innerHTML+='<option value="'+v+'">'+v+'</option>');
-  const mel=document.getElementById('mf'); mel.innerHTML='<option value="all">Todos los meses</option>';
-  [...ms].sort((a,b)=>+a-+b).forEach(v=>mel.innerHTML+='<option value="'+v+'">'+(MN[+v]||v)+'</option>');
+  const yel=document.getElementById('yf'); 
+  yel.innerHTML='<option value="all">Todos los años</option>';
+  
+  const arrY = Array.from(ys).sort(function(a,b){return b-a;});
+  for(let i=0; i<arrY.length; i++) {
+      yel.innerHTML += '<option value="' + arrY[i] + '">' + arrY[i] + '</option>';
+  }
+  
+  const mel=document.getElementById('mf'); 
+  mel.innerHTML='<option value="all">Todos los meses</option>';
+  
+  const arrM = Array.from(ms).sort(function(a,b){return a-b;});
+  for(let j=0; j<arrM.length; j++) {
+      mel.innerHTML += '<option value="' + arrM[j] + '">' + (MN[+arrM[j]]||arrM[j]) + '</option>';
+  }
 }
 
 function getFiltered(dataset) {
   const yr=document.getElementById('yf').value, mo=document.getElementById('mf').value;
-  return dataset.filter(r=>{
+  return dataset.filter(function(r){
     const p=(r['Mes']||'').split('-');
     if(yr!=='all' && p[1]!==yr) return false;
     if(mo!=='all' && p[0]!==mo) return false;
@@ -281,117 +295,273 @@ function diff(a,b){if(!a||!b)return null;return Math.round(Math.abs(b-a)/864e5);
 function fmtF(n){return n?'$'+Math.round(n).toLocaleString('es-AR'):'—';}
 
 function renderReclamosActuales(){
-  const cur = getFiltered(store.reclamos).map(r=>({
-    ...r,
-    _dir: r['Dirección'] || 'Sin Dirección',
-    _tot: pN(r['Total Pagado']) || (pN(r['Mano de Obra'])+pN(r['Materiales'])),
-    _prov: (r['Contratista Asignado']||'').trim() || 'Sin asignar',
-    _rec: pD(r['Fecha Recepción Mail']),
-    _diag: pD(r['Fecha Visita/Diagnóstico'])
-  }));
-  const tot=cur.length, closed=cur.filter(r=>(r['Estado Actual']||'')==='Cerrado').length;
-  const totalBilled = cur.reduce((s,r)=>s+r._tot,0);
-  const times = cur.filter(r=>r._rec && r._diag).map(r=>diff(r._rec, r._diag)).filter(v=>v>=0);
-  const avg = times.length ? (times.reduce((a,b)=>a+b,0)/times.length).toFixed(1) + ' días' : '—';
+  const curRaw = getFiltered(store.reclamos);
+  const cur = curRaw.map(function(r){
+    return {
+      _dir: r['Dirección'] || 'Sin Dirección',
+      _tot: pN(r['Total Pagado']) || (pN(r['Mano de Obra'])+pN(r['Materiales'])),
+      _prov: (r['Contratista Asignado']||'').trim() || 'Sin asignar',
+      _rec: pD(r['Fecha Recepción Mail']),
+      _diag: pD(r['Fecha Visita/Diagnóstico']),
+      orig: r
+    };
+  });
+
+  const tot=cur.length;
+  let closed = 0;
+  let totalBilled = 0;
+  let timeSum = 0;
+  let timeCount = 0;
+
+  for(let i=0; i<cur.length; i++) {
+      if ((cur[i].orig['Estado Actual']||'') === 'Cerrado') closed++;
+      totalBilled += cur[i]._tot;
+      if (cur[i]._rec && cur[i]._diag) {
+          const d = diff(cur[i]._rec, cur[i]._diag);
+          if (d >= 0) {
+              timeSum += d;
+              timeCount++;
+          }
+      }
+  }
+  
+  const avg = timeCount > 0 ? (timeSum / timeCount).toFixed(1) + ' días' : '—';
+
   document.getElementById('rk1').textContent = tot;
   document.getElementById('rk2').textContent = fmtF(totalBilled);
   document.getElementById('rk3').textContent = avg;
   document.getElementById('rk4').textContent = closed;
   document.getElementById('rk5').textContent = tot - closed;
+
   const body = document.getElementById('tblReclamosBody');
-  if(!cur.length){ body.innerHTML='<tr><td colspan="7" class="nodata">No se registran reparaciones en este período</td></tr>'; return; }
-  body.innerHTML = cur.map(r=>{
-    const est = r['Estado Actual'] || 'Pendiente';
-    const bc = est==='Cerrado'?'b-g': (est.includes('Aprobado')?'b-y':'b-r');
-    return '<tr><td style="font-weight:600">#'+(r['N° Reclamo']||'—')+'</td><td style="font-size:12px">'+(r['Fecha Recepción Mail']||'—')+'</td><td style="font-weight:500;color:var(--green)">'+r._dir+'</td><td><span class="rubro-tag">'+(r['Rubro'] || 'Mantenimiento')+'</span></td><td style="font-size:13px">'+r._prov+'</td><td><span class="badge '+bc+'">'+est+'</span></td><td class="tr" style="font-weight:600;color:var(--green)">'+fmtF(r._tot)+'</td></tr>';
-  }).join('');
+  if(tot === 0){ body.innerHTML='<tr><td colspan="7" class="nodata">No se registran reparaciones en este período</td></tr>'; return; }
+
+  let html = '';
+  for(let j=0; j<cur.length; j++) {
+    const r = cur[j];
+    const est = r.orig['Estado Actual'] || 'Pendiente';
+    const bc = est==='Cerrado' ? 'b-g' : (est.includes('Aprobado') ? 'b-y' : 'b-r');
+    
+    html += '<tr>' +
+      '<td style="font-weight:600">#' + (r.orig['N° Reclamo']||'—') + '</td>' +
+      '<td style="font-size:12px">' + (r.orig['Fecha Recepción Mail']||'—') + '</td>' +
+      '<td style="font-weight:500;color:var(--green)">' + r._dir + '</td>' +
+      '<td><span class="rubro-tag">' + (r.orig['Rubro'] || 'Mantenimiento') + '</span></td>' +
+      '<td style="font-size:13px">' + r._prov + '</td>' +
+      '<td><span class="badge ' + bc + '">' + est + '</span></td>' +
+      '<td class="tr" style="font-weight:600;color:var(--green)">' + fmtF(r._tot) + '</td>' +
+    '</tr>';
+  }
+  body.innerHTML = html;
 }
 
 function renderProps(){
   const hist = getFiltered(store.general);
   propData = {};
-  hist.forEach(r=>{
-    const dir = (r['DIRECCION'] || '').trim(); if(!dir) return;
+
+  for(let i=0; i<hist.length; i++) {
+    const r = hist[i];
+    const dir = (r['DIRECCION'] || '').trim(); 
+    if(!dir) continue;
+    
     const totalCost = pN(r['Mano de Obra']) + pN(r['Materiales']) || pN(r['PAGADO']);
-    if(!propData[dir]) propData[dir] = { prop: r['PROPIETARIO']||'—', inq: r['INQUILINO']||'—', totalInvested: 0, count: 0, rows: [] };
+    
+    if(!propData[dir]) {
+        propData[dir] = { prop: r['PROPIETARIO']||'—', inq: r['INQUILINO']||'—', totalInvested: 0, count: 0, rows: [] };
+    }
+    
     propData[dir].totalInvested += totalCost;
     propData[dir].count++;
-    propData[dir].rows.push({ ref: 'Histórico #' + (r['N° Reclamo'] || 'S/N'), date: r['Recepción Reclamo'] || '—', desc: r['PEDIDO DE REPARACION'] || '—', prov: (r['Contratista Asignado'] || 'Sin Asignar').trim(), cost: totalCost });
-  });
-  const dirs = Object.keys(propData), totalUnits = dirs.length;
-  const globalInvesment = dirs.reduce((s,d)=>s+propData[d].totalInvested, 0);
+    propData[dir].rows.push({
+      ref: 'Histórico #' + (r['N° Reclamo'] || 'S/N'),
+      date: r['Recepción Reclamo'] || '—',
+      desc: r['PEDIDO DE REPARACION'] || '—',
+      prov: (r['Contratista Asignado'] || 'Sin Asignar').trim(),
+      cost: totalCost
+    });
+  }
+
+  const dirs = Object.keys(propData);
+  const totalUnits = dirs.length;
+  let globalInvesment = 0;
+  for(let j=0; j<dirs.length; j++) {
+      globalInvesment += propData[dirs[j]].totalInvested;
+  }
+
   document.getElementById('pK1').textContent = totalUnits;
   document.getElementById('pK2').textContent = fmtF(globalInvesment);
   document.getElementById('pK3').textContent = totalUnits ? (hist.length / totalUnits).toFixed(1) : 0;
   document.getElementById('pK4').textContent = totalUnits ? fmtF(globalInvesment / totalUnits) : '—';
+
   renderPropTable();
 }
 
 function renderPropTable(){
   const q = document.getElementById('propSearch').value.toLowerCase();
-  const dirs = Object.keys(propData).filter(d=> !q || d.toLowerCase().includes(q) || propData[d].prop.toLowerCase().includes(q) || propData[d].inq.toLowerCase().includes(q));
+  const allDirs = Object.keys(propData);
+  
+  const dirs = allDirs.filter(function(d){
+      return !q || d.toLowerCase().includes(q) || propData[d].prop.toLowerCase().includes(q) || propData[d].inq.toLowerCase().includes(q);
+  });
+  
   const el = document.getElementById('propTableBody');
-  if(!dirs.length){ el.innerHTML='<tr><td colspan="5" class="nodata">No se localizaron propiedades con el criterio ingresado</td></tr>'; return; }
-  el.innerHTML = dirs.slice(0,50).map(d=>{
+  if(dirs.length === 0){ el.innerHTML='<tr><td colspan="5" class="nodata">No se localizaron propiedades con el criterio ingresado</td></tr>'; return; }
+
+  let html = '';
+  const limit = dirs.length > 50 ? 50 : dirs.length;
+  for(let i=0; i<limit; i++) {
+    const d = dirs[i];
     const p = propData[d];
-    return '<tr style="cursor:pointer" onclick="showPropDetail(decodeURIComponent(\''+encodeURIComponent(d)+'\'))"><td style="font-weight:600;color:var(--green)">'+d+'</td><td style="font-size:13px">'+p.prop+'</td><td style="font-size:13px">'+p.inq+'</td><td class="tr" style="font-weight:700">'+p.count+'</td><td class="tr" style="font-weight:700;color:var(--green)">'+fmtF(p.totalInvested)+'</td></tr>';
-  }).join('');
+    html += '<tr style="cursor:pointer" onclick="showPropDetail(decodeURIComponent(\'' + encodeURIComponent(d) + '\'))">' +
+      '<td style="font-weight:600;color:var(--green)">' + d + '</td>' +
+      '<td style="font-size:13px">' + p.prop + '</td>' +
+      '<td style="font-size:13px">' + p.inq + '</td>' +
+      '<td class="tr" style="font-weight:700">' + p.count + '</td>' +
+      '<td class="tr" style="font-weight:700;color:var(--green)">' + fmtF(p.totalInvested) + '</td>' +
+    '</tr>';
+  }
+  el.innerHTML = html;
 }
 
 function showPropDetail(dir){
-  const p = propData[dir]; if(!p) return;
+  const p = propData[dir]; 
+  if(!p) return;
+  
   document.getElementById('propDetailLabel').style.display = '';
   document.getElementById('propDetail').style.display = '';
   document.getElementById('propDetailTitle').textContent = '🏠 ' + dir;
   document.getElementById('propDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  document.getElementById('propKpiGrid').innerHTML = [['Arreglos Registrados', p.count],['Total Invertido', fmtF(p.totalInvested)]].map(([l,v])=>'<div class="stat-box"><div class="stat-lbl">'+l+'</div><div class="stat-val">'+v+'</div></div>').join('');
+
+  document.getElementById('propKpiGrid').innerHTML = 
+    '<div class="stat-box"><div class="stat-lbl">Arreglos Registrados</div><div class="stat-val">' + p.count + '</div></div>' +
+    '<div class="stat-box"><div class="stat-lbl">Total Invertido</div><div class="stat-val">' + fmtF(p.totalInvested) + '</div></div>';
+
   const mProv = {};
-  p.rows.forEach(r=>{ if(r.prov && r.prov!=='Sin asignar') mProv[r.prov] = (mProv[r.prov]||0) + r.cost; });
-  const totalBilledDir = Object.values(mProv).reduce((a,b)=>a+b, 0) || 1;
-  document.getElementById('propProvShare').innerHTML = Object.entries(mProv).sort((a,b)=>b[1]-a[1]).map(([prov, total])=>'<div style="display:flex;justify-content:space-between;font-size:13px;background:var(--bg);padding:6px 12px;border-radius:6px;"><span>'+prov+'</span><span style="font-weight:600;color:var(--green)">'+Math.round((total/totalBilledDir)*100)+'% ('+fmtF(total)+')</span></div>').join('');
-  document.getElementById('propDetailBody').innerHTML = p.rows.map(r=>'<tr><td style="font-size:12px;white-space:nowrap">'+r.date+'</td><td style="font-size:12px;max-width:300px">'+r.desc+'</td><td style="font-size:13px">'+r.prov+'</td><td class="tr" style="font-weight:600;color:var(--green)">'+fmtF(r.cost)+'</td></tr>').join('');
+  for(let i=0; i<p.rows.length; i++) {
+      const r = p.rows[i];
+      if(r.prov && r.prov !== 'Sin asignar') {
+          mProv[r.prov] = (mProv[r.prov] || 0) + r.cost;
+      }
+  }
+  
+  const provKeys = Object.keys(mProv);
+  let totalBilledDir = 0;
+  for(let j=0; j<provKeys.length; j++) totalBilledDir += mProv[provKeys[j]];
+  if(totalBilledDir === 0) totalBilledDir = 1;
+  
+  provKeys.sort(function(a,b){ return mProv[b] - mProv[a]; });
+  
+  let htmlProv = '';
+  for(let k=0; k<provKeys.length; k++) {
+      const prov = provKeys[k];
+      const total = mProv[prov];
+      htmlProv += '<div style="display:flex;justify-content:space-between;font-size:13px;background:var(--bg);padding:6px 12px;border-radius:6px;">' +
+      '<span>' + prov + '</span><span style="font-weight:600;color:var(--green)">' + Math.round((total/totalBilledDir)*100) + '% (' + fmtF(total) + ')</span>' +
+      '</div>';
+  }
+  document.getElementById('propProvShare').innerHTML = htmlProv;
+
+  let htmlRows = '';
+  for(let z=0; z<p.rows.length; z++) {
+      const rw = p.rows[z];
+      htmlRows += '<tr>' +
+      '<td style="font-size:12px;white-space:nowrap">' + rw.date + '</td>' +
+      '<td style="font-size:12px;max-width:300px">' + rw.desc + '</td>' +
+      '<td style="font-size:13px">' + rw.prov + '</td>' +
+      '<td class="tr" style="font-weight:600;color:var(--green)">' + fmtF(rw.cost) + '</td>' +
+      '</tr>';
+  }
+  document.getElementById('propDetailBody').innerHTML = htmlRows;
 }
 
 function renderProveedores(){
   const pPerf = {};
-  store.general.forEach(r=>{
-    const pr = (r['Contratista Asignado']||'').trim(); if(!pr || pr==='Sin asignar') return;
+
+  for(let i=0; i<store.general.length; i++) {
+    const r = store.general[i];
+    const pr = (r['Contratista Asignado']||'').trim(); 
+    if(!pr || pr==='Sin asignar') continue;
+    
     if(!pPerf[pr]) pPerf[pr] = { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     pPerf[pr].totalJobs++;
-  });
-  store.reclamos.forEach(r=>{
-    const pr = (r['Contratista Asignado']||'').trim(); if(!pr || pr==='Sin asignar') return;
+  }
+
+  for(let j=0; j<store.reclamos.length; j++) {
+    const r = store.reclamos[j];
+    const pr = (r['Contratista Asignado']||'').trim(); 
+    if(!pr || pr==='Sin asignar') continue;
+    
     if(!pPerf[pr]) pPerf[pr] = { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     pPerf[pr].totalJobs++;
-    const rDate = pD(r['Fecha Recepción Mail']), dDate = pD(r['Fecha Visita/Diagnóstico']);
+
+    const rDate = pD(r['Fecha Recepción Mail']);
+    const dDate = pD(r['Fecha Visita/Diagnóstico']);
     if(rDate && dDate){
       const dDays = diff(rDate, dDate);
       if(dDays >= 0) pPerf[pr].currentTimes.push(dDays);
     }
+    
     if((r['Precio Acorde Mercado']||'').toLowerCase().includes('acorde')) pPerf[pr].okPrice++;
     if((r['Conformidad Inquilino']||'').toLowerCase().includes('conforme')) pPerf[pr].okClient++;
-  });
+  }
+
   const pFields = ['Plomeria','Gas','Calderas','Electricidad','Albañileria menor','Albañileria mayor','Carpinteria','Colocacion pisos madera','Durlock','Herrería','Pintura','Aires Acondicionados'];
-  const grid = document.getElementById('provGrid');
-  grid.innerHTML = store.proveedores.map(p=>{
+
+  let html = '';
+  for(let k=0; k<store.proveedores.length; k++) {
+    const p = store.proveedores[k];
     const name = p['Proveedor'];
-    if(!name || name.includes('S/ Asignar') || name.includes('Duplicado')) return '';
-    const specs = pFields.filter(f=> (p[f]||'').toString().toUpperCase() === 'SI');
+    if(!name || name.includes('S/ Asignar') || name.includes('Duplicado')) continue;
+
+    const specs = pFields.filter(function(f){ return (p[f]||'').toString().toUpperCase() === 'SI'; });
     const mainSpec = specs[0] || 'Servicios Generales';
     const secSpec = specs.slice(1, 3);
+
     const stats = pPerf[name] || { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
-    const avgDays = stats.currentTimes.length ? (stats.currentTimes.reduce((a,b)=>a+b,0)/stats.currentTimes.length).toFixed(1) + ' días' : 'S/ Datos';
+    
+    let timeSum = 0;
+    for(let t=0; t<stats.currentTimes.length; t++) timeSum += stats.currentTimes[t];
+    const avgDays = stats.currentTimes.length ? (timeSum / stats.currentTimes.length).toFixed(1) + ' días' : 'S/ Datos';
+    
     let rating = 3;
-    if(stats.totalJobs > 0 && stats.currentTimes.length){
-      const scoreRatio = (stats.okPrice + stats.okClient) / (stats.totalJobs || 1);
+    if(stats.totalJobs > 0 && stats.currentTimes.length > 0){
+      const scoreRatio = (stats.okPrice + stats.okClient) / stats.totalJobs;
       rating = Math.min(5, Math.max(1, Math.round(3 + scoreRatio * 2)));
     }
-    const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-    const secTags = secSpec.map(s=> '<span class="tag-sec">'+s+'</span>').join('');
-    return '<div class="prov-card"><div class="prov-head"><div><div class="prov-name">'+name+'</div><div class="prov-contact">📞 '+(p['Contacto'] || 'Sin número')+'</div></div><div class="prov-stars">'+starStr+'</div></div><div class="prov-tags"><span class="tag-main">'+mainSpec+'</span>'+secTags+'</div><div class="prov-metrics"><div><div class="pm-lbl">Reparaciones Realizadas</div><div class="pm-val">'+stats.totalJobs+'</div></div><div><div class="pm-lbl">Tiempo Rta. (Nuevos)</div><div class="pm-val" style="color:var(--green)">'+avgDays+'</div></div></div></div>';
-  }).join('');
+    
+    let starStr = '';
+    for(let s1=0; s1<rating; s1++) starStr += '★';
+    for(let s2=0; s2<(5-rating); s2++) starStr += '☆';
+
+    let secTags = '';
+    for(let st=0; st<secSpec.length; st++) {
+        secTags += '<span class="tag-sec">' + secSpec[st] + '</span>';
+    }
+
+    html += '<div class="prov-card">' +
+      '<div class="prov-head">' +
+        '<div>' +
+          '<div class="prov-name">' + name + '</div>' +
+          '<div class="prov-contact">📞 ' + (p['Contacto'] || 'Sin número') + '</div>' +
+        '</div>' +
+        '<div class="prov-stars">' + starStr + '</div>' +
+      '</div>' +
+      '<div class="prov-tags">' +
+        '<span class="tag-main">' + mainSpec + '</span>' +
+        secTags +
+      '</div>' +
+      '<div class="prov-metrics">' +
+        '<div><div class="pm-lbl">Reparaciones Realizadas</div><div class="pm-val">' + stats.totalJobs + '</div></div>' +
+        '<div><div class="pm-lbl">Tiempo Rta. (Nuevos)</div><div class="pm-val" style="color:var(--green)">' + avgDays + '</div></div>' +
+      '</div>' +
+    '</div>';
+  }
+  
+  const grid = document.getElementById('provGrid');
+  grid.innerHTML = html;
 }
 
+// INICIO DE LA APLICACIÓN
 load();
 </script>
 </body>
