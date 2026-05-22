@@ -2,45 +2,45 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLA Dashboard | Administraciones de la Patagonia</title>
+    <title>Dashboard Proptech | Patagonia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --green: #1F6C43; --gold: #D4AF37; --bg: #F8FAFC; }
+        :root { --green: #1F6C43; --gold: #D4AF37; --bg: #F1F5F9; }
         body { font-family: 'Source Sans 3', sans-serif; background: var(--bg); color: #1e293b; }
         .font-head { font-family: 'Playfair Display', serif; }
         .kpi-card { background: white; border-radius: 12px; border-bottom: 4px solid var(--green); transition: all 0.3s; }
-        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
-        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.2s; font-weight: 600; color: #64748b; }
-        .tab-btn.active { border-bottom-color: var(--green); color: var(--green); }
         .badge-actual { background: #DCFCE7; color: #166534; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 800; }
         .badge-hist { background: #F1F5F9; color: #475569; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 800; }
+        #loader { background: rgba(255,255,255,0.9); z-index: 100; }
+        .tab-btn.active { border-bottom: 3px solid var(--green); color: var(--green); font-weight: 700; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div id="loader" class="fixed inset-0 bg-white/95 z-50 flex flex-col items-center justify-center">
-        <div class="w-16 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs">Administraciones de la Patagonia - Data Engine</p>
+    <div id="loader" class="fixed inset-0 flex flex-col items-center justify-center">
+        <div class="w-16 h-16 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs tracking-widest">Sincronizando Patagonia Engine...</p>
     </div>
 
+    <!-- HEADER -->
     <header class="bg-[#1F6C43] text-white px-8 py-6 shadow-xl sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div>
                 <h1 class="font-head text-3xl">ADMINISTRACIONES DE LA <span class="text-[#D4AF37]">PATAGONIA</span></h1>
-                <p class="text-[10px] uppercase tracking-[0.3em] opacity-80 font-bold">Proptech Division · Gestión de Activos</p>
+                <p class="text-[10px] uppercase tracking-[0.3em] opacity-80 font-bold">Business Intelligence Division</p>
             </div>
-            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition duration-200">↻ ACTUALIZAR DATOS</button>
+            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ REFRESCAR DATOS</button>
         </div>
     </header>
 
+    <!-- TABS -->
     <nav class="bg-white border-b sticky top-[88px] z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-8 flex gap-10">
-            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-5 uppercase text-xs tracking-widest">📊 Dashboard</button>
-            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-5 uppercase text-xs tracking-widest">🏠 Propiedades</button>
-            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-5 uppercase text-xs tracking-widest">👷 Contratistas</button>
+            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-5 uppercase text-xs">📊 Dashboard</button>
+            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-5 uppercase text-xs">🏠 Propiedades</button>
+            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-5 uppercase text-xs">👷 Proveedores</button>
         </div>
     </nav>
 
@@ -49,117 +49,99 @@
         <!-- FILTROS -->
         <section class="bg-white p-6 rounded-xl shadow-md border mb-8 flex flex-wrap gap-8 items-end">
             <div class="w-64">
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Fuente de Información</label>
-                <select id="fSource" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-bold text-green-900 outline-none ring-1 ring-slate-200">
-                    <option value=\"all\">📁 CONSOLIDADO (TODO)</option>
-                    <option value=\"ACTUAL\" selected>⚡ RECLAMOS ACTUALES</option>
-                    <option value=\"HISTORICO\">📜 ARCHIVO HISTÓRICO</option>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Fuente de Datos</label>
+                <select id="fSource" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-bold text-green-900">
+                    <option value="all">📁 CONSOLIDADO (TODO)</option>
+                    <option value="ACTUAL" selected>⚡ RECLAMOS ACTUALES</option>
+                    <option value="HISTORICO">📜 ARCHIVO GENERAL (HISTÓRICO)</option>
                 </select>
             </div>
             <div class="w-48">
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Rubro de Reparación</label>
+                <label class="block text-[10px] font-black text-gray-400 uppercase mb-2">Filtrar por Rubro</label>
                 <select id="fRubro" onchange="applyFilters()" class="w-full bg-slate-50 border p-2.5 rounded-lg text-sm font-semibold"></select>
             </div>
             <div class="ml-auto text-right">
-                <p id=\"countLabel\" class=\"text-4xl font-black text-green-700\">0</p>
-                <p class=\"text-[10px] uppercase font-bold text-slate-400\">Registros</p>
+                <p id="countLabel" class="text-4xl font-black text-green-700">0</p>
+                <p class="text-[10px] uppercase font-bold text-slate-400">Arreglos Detectados</p>
             </div>
         </section>
 
-        <!-- DASHBOARD -->
-        <div id="view-dash">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 text-center">
+        <!-- SECCIÓN 1: DASHBOARD -->
+        <div id="view-dash" class="space-y-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="kpi-card p-6">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Inversión Total</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Inversión Total</p>
                     <h2 id="kpi-total" class="text-2xl font-black text-green-800 mt-1">$ 0</h2>
                 </div>
                 <div class="kpi-card p-6">
-                    <p class="text-xs font-bold text-gray-400 uppercase">SLA Gestión</p>
-                    <h2 id="kpi-sla-asig" class="text-2xl font-black text-amber-700 mt-1">-- d</h2>
-                    <p class="text-[9px] text-slate-400 italic">Reporte ➔ Asignación</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Mano de Obra</p>
+                    <h2 id="kpi-mo" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2>
                 </div>
                 <div class="kpi-card p-6">
-                    <p class="text-xs font-bold text-gray-400 uppercase">SLA Ejecución</p>
-                    <h2 id="kpi-sla-fin" class="text-2xl font-black text-blue-700 mt-1">-- d</h2>
-                    <p class="text-[9px] text-slate-400 italic">Asignación ➔ Fin</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Materiales</p>
+                    <h2 id="kpi-mat" class="text-2xl font-black text-slate-700 mt-1">$ 0</h2>
                 </div>
-                <div class="kpi-card p-6 border-red-500">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Urgencia Alta</p>
-                    <h2 id="kpi-urg" class="text-2xl font-black text-red-700 mt-1">0</h2>
+                <div class="kpi-card p-6 border-amber-500">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">SLA Gestión</p>
+                    <h2 id="kpi-sla" class="text-2xl font-black text-amber-700 mt-1">-- d</h2>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest border-b pb-2 text-center">Distribución de Gastos</h3>
+                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest text-center">Inversión por Rubro</h3>
                     <div class="h-80"><canvas id="chartRubros"></canvas></div>
                 </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest border-b pb-2">Tabla de Inversión por Rubro</h3>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="font-bold text-slate-700 mb-6 uppercase text-xs tracking-widest text-center">Gasto Acumulado</h3>
                     <table class="w-full text-sm">
-                        <thead><tr class="text-slate-400 uppercase text-[10px]"><th class="text-left pb-4">Rubro</th><th class="text-right pb-4 text-green-700 font-bold">Total Invertido</th></tr></thead>
+                        <thead class="text-[10px] text-slate-400 uppercase font-black">
+                            <tr><th class="text-left pb-4">Categoría</th><th class="text-right pb-4">Total Invertido</th></tr>
+                        </thead>
                         <tbody id="bodyFinancialTable" class="divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- PROPIEDADES -->
+        <!-- SECCIÓN 2: PROPIEDADES -->
         <div id="view-props" class="hidden">
             <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
                 <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                    <h3 class="font-head text-xl text-green-900 font-bold">Auditoría Técnica de Activos</h3>
-                    <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar propiedad o propietario..." class="border rounded-lg px-4 py-2 text-sm w-96 outline-none focus:ring-2 focus:ring-green-500">
+                    <h3 class="font-head text-xl text-green-900 font-bold tracking-tight">Auditoría Técnica por Domicilio</h3>
+                    <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar dirección..." class="border rounded-lg px-4 py-2 text-sm w-80 outline-none focus:ring-2 focus:ring-green-500">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm" id="tableProps">
                         <thead class="bg-slate-100 uppercase text-[10px] text-slate-500 font-black">
                             <tr>
-                                <th class="px-6 py-4">Fuente</th>
-                                <th class="px-6 py-4">Dirección</th>
-                                <th class="px-6 py-4">Propietario</th>
-                                <th class="px-6 py-4 text-center font-bold">Reclamos</th>
-                                <th class="px-6 py-4 text-right">M. Obra</th>
-                                <th class="px-6 py-4 text-right">Materiales</th>
-                                <th class="px-6 py-4 text-right">Inversión Total</th>
-                                <th class="px-6 py-4">Rubro Líder</th>
+                                <th class="px-6 py-4">Ficha</th><th class="px-6 py-4">Dirección</th><th class="px-6 py-4">M. Obra</th><th class="px-6 py-4">Materiales</th><th class="px-6 py-4 text-right">Inversión</th><th class="px-6 py-4">Rubro</th>
                             </tr>
                         </thead>
-                        <tbody id="bodyProps" class="divide-y divide-slate-100 bg-white"></tbody>
+                        <tbody id="bodyProps" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- PROVEEDORES -->
+        <!-- SECCIÓN 3: PROVEEDORES -->
         <div id="view-provs" class="hidden">
             <div class="bg-white rounded-2xl shadow-xl border overflow-hidden">
-                <div class="p-6 bg-slate-50 border-b">
-                    <h3 class="font-head text-xl text-green-900 font-bold">Performance de Contratistas</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-100 uppercase text-[10px] text-slate-500 font-black">
-                            <tr>
-                                <th class="px-6 py-4">Contratista</th>
-                                <th class="px-6 py-4">Especialidad</th>
-                                <th class="px-6 py-4">Calificación</th>
-                                <th class="px-6 py-4 text-center">Trabajos</th>
-                                <th class="px-6 py-4 text-right">M. Obra</th>
-                                <th class="px-6 py-4 text-right">Materiales</th>
-                                <th class="px-6 py-4 text-right font-black">Inversión Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyProvs" class="divide-y divide-slate-100 bg-white"></tbody>
-                    </table>
-                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100 uppercase text-[10px] text-slate-500 font-black">
+                        <tr><th class="px-6 py-4">Proveedor</th><th class="px-6 py-4">Especialidad</th><th class="px-6 py-4 text-center">Calidad</th><th class="px-6 py-4 text-center font-bold">Trabajos</th><th class="px-6 py-4 text-right font-black">Facturación Total</th></tr>
+                    </thead>
+                    <tbody id="bodyProvs" class="divide-y divide-slate-100"></tbody>
+                </table>
             </div>
         </div>
 
     </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxBO5Rz9GQkLirE_UfU9rcSDxrITN1CZO4aaHwAja_QxjZz-tvi3Tk80vh1t6x4VTQQkQ/exec";
+        // REEMPLAZAR CON TU URL REAL
+        const API_URL = "https://script.google.com/macros/s/AKfycbzYjYX1RVqAFN4WjiUNiUQWq6TLK4Eg8RlL3YvSNyuaCN9Gi0I-3zcmgSiJR0Em5SDQag/exec";
+        
         let rawData = [], filtered = [], providers = [], charts = {};
 
         function loadData() {
@@ -176,13 +158,13 @@
                 providers = res.proveedores;
                 initFilters();
                 applyFilters();
-            } else { alert("Fallo de comunicación con la base de datos."); }
+            } else { alert("Error de Datos: " + res.error); }
         }
 
         function initFilters() {
             const rubros = [...new Set(rawData.map(r => detectRubro(r['PEDIDO DE REPARACION'])))].sort();
             const rubroSel = document.getElementById('fRubro');
-            rubroSel.innerHTML = '<option value=\"all\">TODOS LOS RUBROS</option>' + rubros.map(r => `<option value="${r}">${r}</option>`).join('');
+            if(rubroSel) rubroSel.innerHTML = '<option value="all">TODOS LOS RUBROS</option>' + rubros.map(r => `<option value="${r}">${r}</option>`).join('');
         }
 
         function applyFilters() {
@@ -203,23 +185,20 @@
         }
 
         function renderDashboard() {
-            let total = 0, slaAsigSum = 0, slaAsigCount = 0, slaFinSum = 0, slaFinCount = 0, urgentes = 0;
+            let total = 0, moTotal = 0, matTotal = 0, slaSum = 0, slaCount = 0;
             const rubros = {};
 
             filtered.forEach(r => {
                 const mo = parseFloat(r['Mano de Obra']) || 0;
                 const mat = parseFloat(r['Materiales']) || 0;
                 const t = mo + mat;
-                total += t;
+                total += t; moTotal += mo; matTotal += mat;
 
-                if((r['Urgencia']||'').includes('Alta')) urgentes++;
-
-                // SLA Gestión: Recepción -> Asignación
                 const dRec = parseDate(r['Recepción Reclamo']);
                 const dAsig = parseDate(r['Fecha de Asignación']);
                 if(dRec && dAsig && dAsig >= dRec) {
-                    slaAsigSum += Math.floor((dAsig - dRec) / 864e5);
-                    slaAsigCount++;
+                    slaSum += Math.floor((dAsig - dRec) / 864e5);
+                    slaCount++;
                 }
 
                 const rub = detectRubro(r['PEDIDO DE REPARACION']);
@@ -227,109 +206,111 @@
                 rubros[rub] += t;
             });
 
-            document.getElementById('kpi-total').innerText = fmt(total);
-            document.getElementById('kpi-sla-asig').innerText = slaAsigCount ? (slaAsigSum/slaAsigCount).toFixed(1) + ' d' : '--';
-            document.getElementById('kpi-urg').innerText = urgentes;
-            document.getElementById('countLabel').innerText = filtered.length;
+            const setKPI = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+            setKPI('kpi-total', fmt(total));
+            setKPI('kpi-mo', fmt(moTotal));
+            setKPI('kpi-mat', fmt(matTotal));
+            setKPI('kpi-sla', slaCount ? (slaSum/slaCount).toFixed(1) + ' d' : '--');
+            setKPI('countLabel', filtered.length);
 
             updateChart(rubros);
-            document.getElementById('bodyFinancialTable').innerHTML = Object.entries(rubros).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
-                <tr class="hover:bg-slate-50 transition"><td class="py-3 font-bold text-slate-600 uppercase text-xs">${k}</td><td class="text-right text-green-700 font-bold">${fmt(v)}</td></tr>
-            `).join('');
+            const financialTable = document.getElementById('bodyFinancialTable');
+            if(financialTable) {
+                financialTable.innerHTML = Object.entries(rubros).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 font-bold text-slate-600 uppercase text-[10px]">${k}</td>
+                        <td class="text-right text-green-700 font-black">${fmt(v)}</td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function renderProperties() {
             const props = {};
             filtered.forEach(r => {
                 const dir = (r['DIRECCION'] || 'S/D').trim();
-                if(!props[dir]) props[dir] = { dir, prop: r['PROPIETARIO'], n: 0, mo: 0, mat: 0, t: 0, rub: '', src: r._origen };
+                if(!props[dir]) props[dir] = { dir, prop: r['PROPIETARIO'], n: 0, mo: 0, mat: 0, val: 0, rub: '', src: r._origen };
                 props[dir].n++;
                 const mo = parseFloat(r['Mano de Obra']) || 0;
                 const mat = parseFloat(r['Materiales']) || 0;
                 props[dir].mo += mo;
                 props[dir].mat += mat;
-                props[dir].t += (mo + mat);
+                props[dir].val += (mo + mat);
                 props[dir].rub = detectRubro(r['PEDIDO DE REPARACION']);
             });
 
-            document.getElementById('bodyProps').innerHTML = Object.values(props).sort((a,b)=>b.t-a.t).map(p => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-4"><span class="${p.src === 'ACTUAL' ? 'badge-actual' : 'badge-hist'}">${p.src}</span></td>
-                    <td class="px-6 py-4 font-bold text-green-950">${p.dir}</td>
-                    <td class="px-6 py-4 text-[10px] text-slate-400 font-bold uppercase">${p.prop || '---'}</td>
-                    <td class="px-6 py-4 text-center font-bold">${p.n}</td>
-                    <td class="px-6 py-4 text-right text-slate-500">${fmt(p.mo)}</td>
-                    <td class="px-6 py-4 text-right text-slate-500">${fmt(p.mat)}</td>
-                    <td class="px-6 py-4 text-right font-black text-green-700 font-mono">${fmt(p.t)}</td>
-                    <td class="px-6 py-4"><span class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-md uppercase">${p.rub}</span></td>
-                </tr>
-            `).join('');
+            const bodyProps = document.getElementById('bodyProps');
+            if(bodyProps) {
+                bodyProps.innerHTML = Object.values(props).sort((a,b)=>b.val-a.val).map(p => `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4"><span class="${p.src === 'ACTUAL' ? 'badge-actual' : 'badge-hist'}">${p.src}</span></td>
+                        <td class="px-6 py-4 font-bold text-green-950">${p.dir}</td>
+                        <td class="px-6 py-4 text-slate-500 font-mono">${fmt(p.mo)}</td>
+                        <td class="px-6 py-4 text-slate-500 font-mono">${fmt(p.mat)}</td>
+                        <td class="px-6 py-4 text-right font-black text-green-700 font-mono">${fmt(p.val)}</td>
+                        <td class="px-6 py-4"><span class="text-[10px] font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-md uppercase">${p.rub}</span></td>
+                    </tr>
+                `).join('');
+            }
         }
 
         function renderProviders() {
             const pStats = {};
             filtered.forEach(r => {
-                const p = (r['Contratista Asignado'] || 'Sin Asignar').trim();
-                if(!pStats[p]) pStats[p] = { n: 0, mo: 0, mat: 0, t: 0 };
+                const p = (r['Contratista Asignado'] || 'S/ Asignar').trim();
+                if(!pStats[p]) pStats[p] = { n: 0, val: 0 };
                 pStats[p].n++;
-                const mo = parseFloat(r['Mano de Obra']) || 0;
-                const mat = parseFloat(r['Materiales']) || 0;
-                pStats[p].mo += mo;
-                pStats[p].mat += mat;
-                pStats[p].t += (mo + mat);
+                pStats[p].val += (parseFloat(r['Mano de Obra']) || 0) + (parseFloat(r['Materiales']) || 0);
             });
 
-            const tbody = document.getElementById('bodyProvs');
-            tbody.innerHTML = '';
-            
-            // Cruzar datos dinámicos con la lista oficial de proveedores
-            providers.forEach(p => {
-                const name = p['Nombre'] || '---';
-                const s = pStats[name] || { n: 0, mo: 0, mat: 0, t: 0 };
-                const stars = "⭐".repeat(parseInt(p['Calificacion']) || 0);
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="px-6 py-4 font-bold text-slate-800">${name}</td>
-                        <td class="px-6 py-4 text-[10px] text-slate-400 uppercase font-black">${p['Especialidad Principal'] || '---'}</td>
-                        <td class="px-6 py-4 text-amber-500 text-lg">${stars || '<span class="text-xs text-slate-300 italic">No calif.</span>'}</td>
-                        <td class="px-6 py-4 text-center font-bold text-slate-700">${s.n}</td>
-                        <td class="px-6 py-4 text-right text-slate-600 font-mono">${fmt(s.mo)}</td>
-                        <td class="px-6 py-4 text-right text-slate-600 font-mono">${fmt(s.mat)}</td>
-                        <td class="px-6 py-4 text-right font-black text-green-700 font-mono">${fmt(s.t)}</td>
-                    </tr>
-                `;
-            });
+            const bodyProvs = document.getElementById('bodyProvs');
+            if(bodyProvs) {
+                bodyProvs.innerHTML = providers.map(p => {
+                    const name = p['Nombre'] || 'S/D';
+                    const s = pStats[name] || { n: 0, val: 0 };
+                    const stars = "⭐".repeat(parseInt(p['Calificacion']) || 0);
+                    return `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-6 py-4 font-bold text-slate-800">${name}</td>
+                            <td class="px-6 py-4 text-[10px] text-gray-400 uppercase font-black tracking-widest">${p['Especialidad Principal'] || '---'}</td>
+                            <td class="px-6 py-4 text-amber-500 text-lg text-center">${stars || '--'}</td>
+                            <td class="px-6 py-4 text-center font-black text-slate-700">${s.n}</td>
+                            <td class="px-6 py-4 text-right font-black text-green-800 font-mono">${fmt(s.val)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
         }
 
         // UTILS
         function parseDate(s) {
             if(!s || typeof s !== 'string') return null;
-            const parts = s.split(/[-/]/);
+            const parts = s.split(/[-/]/);_
             if(parts.length < 3) return null;
             return new Date(parts[0].length === 4 ? parts[0] : parts[2], parts[1]-1, parts[0].length === 4 ? parts[2] : parts[0]);
         }
 
         function detectRubro(d) {
             const s = (d||'').toLowerCase();
-            if(s.includes('caldera') || s.includes('calefactor') || s.includes('radiador')) return 'CALEFACCIÓN';
-            if(s.includes('agua') || s.includes('bacha') || s.includes('plom') || s.includes('inodoro') || s.includes('bidet')) return 'PLOMERÍA';
-            if(s.includes('luz') || s.includes('enchufe') || s.includes('elect') || s.includes('termica')) return 'ELECTRICIDAD';
-            if(s.includes('pintura') || s.includes('humedad') || s.includes('techo') || s.includes('filtracion')) return 'ESTRUCTURA/HUMEDAD';
-            if(s.includes('piso') || s.includes('baldosa') || s.includes('ceramico')) return 'ALBAÑILERÍA';
-            return 'MANTENIMIENTO GENERAL';
+            if(s.includes('caldera') || s.includes('calefactor')) return 'CALEFACCIÓN';
+            if(s.includes('agua') || s.includes('bacha') || s.includes('plom') || s.includes('baño')) return 'PLOMERÍA';
+            if(s.includes('luz') || s.includes('elect') || s.includes('enchufe')) return 'ELECTRICIDAD';
+            if(s.includes('pintura') || s.includes('humedad') || s.includes('techo') || s.includes('filtracion')) return 'INFRAESTRUCTURA';
+            return 'GENERAL';
         }
 
         function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n || 0); }
 
         function updateChart(data) {
             if(charts.rub) charts.rub.destroy();
-            const ctx = document.getElementById('chartRubros').getContext('2d');
+            const canvas = document.getElementById('chartRubros');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
             charts.rub = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: Object.keys(data),
-                    datasets: [{ data: Object.values(data), backgroundColor: '#1F6C43', borderRadius: 8, barThickness: 35 }]
+                    datasets: [{ data: Object.values(data), backgroundColor: '#1F6C43', borderRadius: 8 }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
@@ -337,8 +318,10 @@
 
         function switchTab(t) {
             ['dash','props','provs'].forEach(x => {
-                document.getElementById(`view-${x}`).classList.toggle('hidden', x !== t);
-                document.getElementById(`tab-${x}`).classList.toggle('active', x === t);
+                const view = document.getElementById(`view-${x}`);
+                const btn = document.getElementById(`tab-${x}`);
+                if(view) view.classList.toggle('hidden', x !== t);
+                if(btn) btn.classList.toggle('active', x === t);
             });
         }
 
