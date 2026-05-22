@@ -1,214 +1,3 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administraciones de la Patagonia · Panel de Control Operativo</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-:root{--green:#1F6C43;--green-l:#2d8a57;--green-xl:#e8f5ee;--green-bg:#f2faf5;--gold:#D4AF37;--gold-l:#f5e27a;--white:#ffffff;--bg:#f7f8f6;--surface:#ffffff;--border:#e2e8e4;--border-g:rgba(31,108,67,0.15);--text:#1a2e22;--text2:#4a6555;--text3:#8aab96;--shadow:0 2px 12px rgba(31,108,67,0.08);--shadow-lg:0 8px 32px rgba(31,108,67,0.12);--radius:14px;--font-head:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3',sans-serif;}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.5;}
-header{background:var(--green);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;box-shadow:0 2px 16px rgba(31,108,67,0.25);position:sticky;top:0;z-index:100;}
-.brand-name{font-family:var(--font-head);font-size:20px;color:#fff;line-height:1;}
-.brand-name span{color:var(--gold);}
-.brand-sub{font-size:11px;color:rgba(255,255,255,0.6);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;}
-.hright{display:flex;align-items:center;gap:20px;}
-.sync-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:100px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,0.85);}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;}
-.clock{font-size:14px;color:rgba(255,255,255,0.7);}
-
-/* TABS */
-.tab-bar{background:var(--surface);border-bottom:2px solid var(--border);padding:0 40px;display:flex;gap:4px;position:sticky;top:72px;z-index:99;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
-.tab-btn{font-family:var(--font-body);font-size:15px;font-weight:600;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;padding:14px 24px;cursor:pointer;transition:color .2s,border-color .2s;margin-bottom:-2px;}
-.tab-btn:hover{color:var(--green);}
-.tab-btn.active{color:var(--green);border-bottom-color:var(--green);}
-
-/* FILTERS */
-.filters{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.filter-label{font-size:13px;font-weight:600;color:var(--text2);margin-right:4px;}
-.sel-wrap{position:relative;}
-.sel-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--green);font-size:10px;pointer-events:none;}
-select{appearance:none;background:var(--green-bg);border:1.5px solid var(--border-g);color:var(--text);font-family:var(--font-body);font-size:14px;font-weight:500;padding:8px 34px 8px 14px;border-radius:8px;cursor:pointer;outline:none;}
-select:hover,select:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(31,108,67,0.1);}
-.btn-refresh{display:flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;font-family:var(--font-body);font-size:14px;font-weight:600;padding:9px 20px;border-radius:8px;cursor:pointer;}
-.btn-refresh:hover{background:var(--green-l);}
-.sync-lbl{margin-left:auto;font-size:13px;color:var(--text3);}
-
-/* KPIs */
-.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;padding:24px 40px;}
-@media(max-width:900px){.kpi-strip{grid-template-columns:1fr 1fr;}}
-.kpi{background:var(--surface);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--green),var(--gold));}
-.kpi.kgreen::before{background:var(--green);}
-.kpi.kgold::before{background:var(--gold);}
-.kpi.kred::before{background:#ef4444;}
-.kpi-label{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
-.kpi-value{font-family:var(--font-head);font-size:34px;font-weight:700;color:var(--green);line-height:1;}
-.kpi.kgold .kpi-value{color:#b45309;}
-.kpi.kred .kpi-value{color:#ef4444;}
-.kpi-sub{font-size:12px;color:var(--text3);margin-top:6px;}
-
-.page{padding:0 40px 40px;display:flex;flex-direction:column;gap:20px;}
-.row{display:grid;gap:20px;}.row-2{grid-template-columns:1fr 1fr;}
-@media(max-width:900px){.row-2{grid-template-columns:1fr;}}
-.card{background:var(--surface);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);border:1px solid var(--border);}
-.card-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:22px;display:flex;align-items:center;gap:10px;}
-.card-title::before{content:'';display:inline-block;width:4px;height:18px;background:linear-gradient(180deg,var(--green),var(--gold));border-radius:2px;}
-.section-label{font-family:var(--font-head);font-size:20px;color:var(--green);padding:8px 0 4px;border-bottom:2px solid var(--border-g);margin-bottom:4px;margin-top:10px;}
-
-/* BARS */
-.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:13px;}
-.bar-lbl{font-size:13px;font-weight:500;color:var(--text);min-width:145px;max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.bar-track{flex:1;height:8px;background:var(--green-xl);border-radius:4px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:4px;transition:width .8s;}
-.bar-val{font-size:13px;font-weight:600;color:var(--green);min-width:82px;text-align:right;}
-
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.stat-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
-.stat-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;margin-bottom:5px;}
-.stat-val{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--green);}
-
-/* TABLES */
-.t-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:14px;}
-thead th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;padding:10px 14px;border-bottom:2px solid var(--border);text-align:left;}
-tbody td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--text);}
-tbody tr:hover td{background:var(--green-bg);}
-.tr{text-align:right;}
-.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;}
-.b-g{background:var(--green-xl);color:var(--green);}
-.b-y{background:#fef9c3;color:#92400e;}
-.b-r{background:#fee2e2;color:#b91c1c;}
-.nodata{color:var(--text3);font-size:14px;padding:24px 0;text-align:center;}
-.rubro-tag{display:inline-block;background:var(--green-xl);color:var(--green);border-radius:100px;padding:2px 9px;font-size:11px;font-weight:600;}
-
-#propSearch{width:100%;padding:11px 16px;border:1.5px solid var(--border-g);border-radius:8px;background:var(--green-bg);font-family:var(--font-body);outline:none;margin-bottom:16px;}
-
-/* MATRIZ PROVEEDORES CARDS */
-.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
-.prov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;}
-.prov-head{display:flex;justify-content:space-between;align-items:flex-start;}
-.prov-name{font-family:var(--font-head);font-size:17px;color:var(--green);font-weight:700;}
-.prov-stars{color:var(--gold);font-size:16px;letter-spacing:1px;}
-.prov-tags{display:flex;flex-wrap:wrap;gap:6px;}
-.tag-main{background:var(--green);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;}
-.tag-sec{background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:2px 8px;font-size:11px;}
-.prov-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;padding-top:12px;border-top:1px solid var(--border-g);}
-.pm-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
-.pm-val{font-size:15px;font-weight:700;color:var(--text);}
-
-#loader{display:none;position:fixed;inset:0;background:rgba(247,248,246,0.9);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
-#loader.on{display:flex;}
-.loader-ring{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:sp .8s linear infinite;}
-
-footer{background:var(--green);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;margin-top:20px;color:rgba(255,255,255,0.6);font-size:12px;}
-</style>
-</head>
-<body>
-<div id="loader"><div class="loader-ring"></div><div style="font-weight:600">Sincronizando registros de la base…</div></div>
-
-<header>
-  <div>
-    <div class="brand-name">ADMINISTRACIONES DE LA <span>PATAGONIA</span></div>
-    <div class="brand-sub">Sistema de Gestión Integral · Neuquén Capital</div>
-  </div>
-  <div class="hright">
-    <div class="sync-pill"><div class="sync-dot"></div><span id="syncLbl">Conectando…</span></div>
-    <div class="clock" id="clock">--:--:--</div>
-  </div>
-</header>
-
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('reclamos')">📋 Reclamos Generales (Actuales)</button>
-  <button class="tab-btn" onclick="switchTab('propiedades')">🏠 Auditoría Histórica (General)</button>
-  <button class="tab-btn" onclick="switchTab('proveedores')">🛠️ Matriz de Proveedores</button>
-</div>
-
-<div class="filters">
-  <span class="filter-label">Filtros Globales:</span>
-  <div class="sel-wrap"><select id="yf" onchange="go()"><option value="all">Todos los años</option></select></div>
-  <div class="sel-wrap"><select id="mf" onchange="go()"><option value="all">Todos los meses</option></select></div>
-  <button class="btn-refresh" onclick="load()">↻ Actualizar Tablas</button>
-  <span class="sync-lbl" id="slbl"></span>
-</div>
-
-<div id="tab-reclamos">
-  <div class="kpi-strip">
-    <div class="kpi kgreen"><div class="kpi-label">Reclamos Activos</div><div class="kpi-value" id="rk1">—</div><div class="kpi-sub">pestaña actual</div></div>
-    <div class="kpi kgold"><div class="kpi-label">Gasto en Proceso</div><div class="kpi-value" id="rk2">—</div><div class="kpi-sub">mano de obra + mat.</div></div>
-    <div class="kpi"><div class="kpi-label">Tiempo de Respuesta</div><div class="kpi-value" id="rk3">—</div><div class="kpi-sub">promedio hasta diagnóstico</div></div>
-    <div class="kpi kgreen"><div class="kpi-label font-green">Etapa Finalizado</div><div class="kpi-value" id="rk4">—</div><div class="kpi-sub">casos cerrados</div></div>
-    <div class="kpi kred"><div class="kpi-label">En ejecución</div><div class="kpi-value" id="rk5">—</div><div class="kpi-sub">pendientes de cierre</div></div>
-  </div>
-  <div class="page">
-    <div class="section-label">Tablero de Reparaciones en Curso</div>
-    <div class="card">
-      <div class="card-title">Monitoreo de Etapas y Estados Actuales</div>
-      <div class="t-wrap"><table>
-        <thead>
-          <tr><th>Reclamo</th><th>Recepción Mail</th><th>Dirección</th><th>Rubro</th><th>Contratista</th><th>Estado Etapa</th><th class="tr">Monto</th></tr>
-        </thead>
-        <tbody id="tblReclamosBody"></tbody>
-      </table></div>
-    </div>
-  </div>
-</div>
-
-<div id="tab-propiedades" style="display:none">
-  <div class="kpi-strip">
-    <div class="kpi kgreen"><div class="kpi-label font-green">Inmuebles Atendidos</div><div class="kpi-value" id="pK1">—</div><div class="kpi-sub">con registro histórico</div></div>
-    <div class="kpi kgold"><div class="kpi-label">Fondo Consolidado</div><div class="kpi-value" id="pK2">—</div><div class="kpi-sub">invertido históricamente</div></div>
-    <div class="kpi"><div class="kpi-label">Frecuencia Promedio</div><div class="kpi-value" id="pK3">—</div><div class="kpi-sub">reparaciones por propiedad</div></div>
-    <div class="kpi kgold"><div class="kpi-label">Inversión Promedio</div><div class="kpi-value" id="pK4">—</div><div class="kpi-sub">por unidad habitacional</div></div>
-  </div>
-  <div class="page">
-    <div class="section-label">Buscador y Auditoría de Cuentas por Propiedad</div>
-    <div class="card">
-      <div style="display:flex;gap:12px">
-        <input type="text" id="propSearch" placeholder="🔍 Filtrar historial por calle, propietario o inquilino..." oninput="renderPropTable()">
-      </div>
-      <div class="t-wrap"><table>
-        <thead>
-          <tr><th>Dirección</th><th>Propietario Principal</th><th>Inquilino</th><th class="tr">Cant. Reparaciones</th><th class="tr">Total Invertido</th></tr>
-        </thead>
-        <tbody id="propTableBody"></tbody>
-      </table></div>
-    </div>
-
-    <div class="section-label" id="propDetailLabel" style="display:none">Análisis de Costos y Contratistas por Domicilio</div>
-    <div class="card" id="propDetail" style="display:none">
-      <div class="card-title" id="propDetailTitle">—</div>
-      <div class="row row-2" style="margin-bottom:20px">
-        <div class="stat-grid" id="propKpiGrid"></div>
-        <div>
-          <div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase">Participación porcentual de Contratistas</div>
-          <div id="propProvShare" style="display:grid;gap:8px;"></div>
-        </div>
-      </div>
-      <div class="t-wrap"><table>
-        <thead>
-          <tr><th>Fecha u Orden</th><th>Descripción del Pedido</th><th>Contratista</th><th class="tr">Inversión</th></tr>
-        </thead>
-        <tbody id="propDetailBody"></tbody>
-      </table></div>
-    </div>
-  </div>
-</div>
-
-<div id="tab-proveedores" style="display:none">
-  <div class="page" style="padding-top:20px">
-    <div class="section-label">Desempeño y Especialidades de Contratistas</div>
-    <div class="prov-grid" id="provGrid"></div>
-  </div>
-</div>
-
-<footer>
-  <div>Administraciones de la Patagonia · Soluciones Integrales</div>
-  <div id="ftr">—</div>
-</footer>
-
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbzlkjmA0gwWdFsSqXG84FU8aHqJHngv1FY5VNfzCC1Q3Q0MDv2q2NBPDhL9CnjyFDzv9w/exec";
 
@@ -222,11 +11,7 @@ function switchTab(tab){
   document.getElementById('tab-reclamos').style.display = tab==='reclamos' ? '' : 'none';
   document.getElementById('tab-propiedades').style.display = tab==='propiedades' ? '' : 'none';
   document.getElementById('tab-proveedores').style.display = tab==='proveedores' ? '' : 'none';
-  
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',
-    (tab==='reclamos' && i===0) || (tab==='propiedades' && i===1) || (tab==='proveedores' && i===2)
-  ));
-  
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(tab==='reclamos' && i===0) || (tab==='propiedades' && i===1) || (tab==='proveedores' && i===2)));
   if(tab==='propiedades') renderProps();
   if(tab==='proveedores') renderProveedores();
 }
@@ -234,24 +19,19 @@ function switchTab(tab){
 function load(){
   document.getElementById('loader').classList.add('on');
   const old=document.getElementById('_jsonp_v2'); if(old) old.remove();
-  
   window._lbCb = function(json){
     document.getElementById('loader').classList.remove('on');
     if(!json.ok){ alert('Error en sincronización'); return; }
-    
     store.general = json.data.general || [];
     store.reclamos = json.data.reclamos || [];
     store.proveedores = json.data.proveedores || [];
-    
     fillFilters();
     go();
-    
     const timeStr = new Date().toLocaleTimeString('es-AR');
     document.getElementById('syncLbl').textContent = 'Sincronizado ' + timeStr;
-    document.getElementById('slbl').textContent = `${store.reclamos.length} actuales / ${store.general.length} históricos`;
+    document.getElementById('slbl').textContent = store.reclamos.length + ' actuales / ' + store.general.length + ' históricos';
     document.getElementById('ftr').textContent = 'Última actualización de la base: ' + timeStr;
   };
-  
   const s=document.createElement('script'); s.id='_jsonp_v2';
   s.src=API_URL+'?callback=_lbCb&t='+Date.now();
   document.body.appendChild(s);
@@ -261,13 +41,11 @@ function fillFilters(){
   const ys=new Set(), ms=new Set();
   store.general.forEach(r=>{ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
   store.reclamos.forEach(r=>{ const p=(r['Mes']||'').split('-'); if(p.length===2){ ys.add(p[1]); ms.add(p[0]); } });
-  
   const MN=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const yel=document.getElementById('yf'); yel.innerHTML='<option value="all">Todos los años</option>';
-  [...ys].sort((a,b)=>b-a).forEach(v=>yel.innerHTML+=`<option value="${v}">${v}</option>`);
-  
+  [...ys].sort((a,b)=>b-a).forEach(v=>yel.innerHTML+='<option value="'+v+'">'+v+'</option>');
   const mel=document.getElementById('mf'); mel.innerHTML='<option value="all">Todos los meses</option>';
-  [...ms].sort((a,b)=>+a-+b).forEach(v=>mel.innerHTML+=`<option value="${v}">${MN[+v]||v}</option>`);
+  [...ms].sort((a,b)=>+a-+b).forEach(v=>mel.innerHTML+='<option value="'+v+'">'+(MN[+v]||v)+'</option>');
 }
 
 function getFiltered(dataset) {
@@ -300,84 +78,52 @@ function renderReclamosActuales(){
     _rec: pD(r['Fecha Recepción Mail']),
     _diag: pD(r['Fecha Visita/Diagnóstico'])
   }));
-
   const tot=cur.length, closed=cur.filter(r=>(r['Estado Actual']||'')==='Cerrado').length;
   const totalBilled = cur.reduce((s,r)=>s+r._tot,0);
-  
   const times = cur.filter(r=>r._rec && r._diag).map(r=>diff(r._rec, r._diag)).filter(v=>v>=0);
   const avg = times.length ? (times.reduce((a,b)=>a+b,0)/times.length).toFixed(1) + ' días' : '—';
-
   document.getElementById('rk1').textContent = tot;
   document.getElementById('rk2').textContent = fmtF(totalBilled);
   document.getElementById('rk3').textContent = avg;
   document.getElementById('rk4').textContent = closed;
   document.getElementById('rk5').textContent = tot - closed;
-
   const body = document.getElementById('tblReclamosBody');
   if(!cur.length){ body.innerHTML='<tr><td colspan="7" class="nodata">No se registran reparaciones en este período</td></tr>'; return; }
-
   body.innerHTML = cur.map(r=>{
     const est = r['Estado Actual'] || 'Pendiente';
     const bc = est==='Cerrado'?'b-g': (est.includes('Aprobado')?'b-y':'b-r');
-    return `<tr>
-      <td style="font-weight:600">#${r['N° Reclamo']||'—'}</td>
-      <td style="font-size:12px">${r['Fecha Recepción Mail']||'—'}</td>
-      <td style="font-weight:500;color:var(--green)">${r._dir}</td>
-      <td><span class="rubro-tag">${r['Rubro'] || 'Mantenimiento'}</span></td>
-      <td style="font-size:13px">${r._prov}</td>
-      <td><span class="badge ${bc}">${est}</span></td>
-      <td class="tr" style="font-weight:600;color:var(--green)">${fmtF(r._tot)}</td>
-    </tr>`;
+    return '<tr><td style="font-weight:600">#'+(r['N° Reclamo']||'—')+'</td><td style="font-size:12px">'+(r['Fecha Recepción Mail']||'—')+'</td><td style="font-weight:500;color:var(--green)">'+r._dir+'</td><td><span class="rubro-tag">'+(r['Rubro'] || 'Mantenimiento')+'</span></td><td style="font-size:13px">'+r._prov+'</td><td><span class="badge '+bc+'">'+est+'</span></td><td class="tr" style="font-weight:600;color:var(--green)">'+fmtF(r._tot)+'</td></tr>';
   }).join('');
 }
 
 function renderProps(){
   const hist = getFiltered(store.general);
   propData = {};
-
   hist.forEach(r=>{
     const dir = (r['DIRECCION'] || '').trim(); if(!dir) return;
     const totalCost = pN(r['Mano de Obra']) + pN(r['Materiales']) || pN(r['PAGADO']);
     if(!propData[dir]) propData[dir] = { prop: r['PROPIETARIO']||'—', inq: r['INQUILINO']||'—', totalInvested: 0, count: 0, rows: [] };
-    
     propData[dir].totalInvested += totalCost;
     propData[dir].count++;
-    propData[dir].rows.push({
-      ref: 'Histórico #' + (r['N° Reclamo'] || 'S/N'),
-      date: r['Recepción Reclamo'] || '—',
-      desc: r['PEDIDO DE REPARACION'] || '—',
-      prov: (r['Contratista Asignado'] || 'Sin Asignar').trim(),
-      cost: totalCost
-    });
+    propData[dir].rows.push({ ref: 'Histórico #' + (r['N° Reclamo'] || 'S/N'), date: r['Recepción Reclamo'] || '—', desc: r['PEDIDO DE REPARACION'] || '—', prov: (r['Contratista Asignado'] || 'Sin Asignar').trim(), cost: totalCost });
   });
-
   const dirs = Object.keys(propData), totalUnits = dirs.length;
   const globalInvesment = dirs.reduce((s,d)=>s+propData[d].totalInvested, 0);
-
   document.getElementById('pK1').textContent = totalUnits;
   document.getElementById('pK2').textContent = fmtF(globalInvesment);
   document.getElementById('pK3').textContent = totalUnits ? (hist.length / totalUnits).toFixed(1) : 0;
   document.getElementById('pK4').textContent = totalUnits ? fmtF(globalInvesment / totalUnits) : '—';
-
   renderPropTable();
 }
 
 function renderPropTable(){
   const q = document.getElementById('propSearch').value.toLowerCase();
   const dirs = Object.keys(propData).filter(d=> !q || d.toLowerCase().includes(q) || propData[d].prop.toLowerCase().includes(q) || propData[d].inq.toLowerCase().includes(q));
-  
   const el = document.getElementById('propTableBody');
   if(!dirs.length){ el.innerHTML='<tr><td colspan="5" class="nodata">No se localizaron propiedades con el criterio ingresado</td></tr>'; return; }
-
   el.innerHTML = dirs.slice(0,50).map(d=>{
     const p = propData[d];
-    return `<tr style="cursor:pointer" onclick="showPropDetail('${d.replace(/'/g,"\\'")}')">
-      <td style="font-weight:600;color:var(--green)">${d}</td>
-      <td style="font-size:13px">${p.prop}</td>
-      <td style="font-size:13px">${p.inq}</td>
-      <td class="tr" style="font-weight:700">${p.count}</td>
-      <td class="tr" style="font-weight:700;color:var(--green)">${fmtF(p.totalInvested)}</td>
-    </tr>`;
+    return '<tr style="cursor:pointer" onclick="showPropDetail(decodeURIComponent(\''+encodeURIComponent(d)+'\'))"><td style="font-weight:600;color:var(--green)">'+d+'</td><td style="font-size:13px">'+p.prop+'</td><td style="font-size:13px">'+p.inq+'</td><td class="tr" style="font-weight:700">'+p.count+'</td><td class="tr" style="font-weight:700;color:var(--green)">'+fmtF(p.totalInvested)+'</td></tr>';
   }).join('');
 }
 
@@ -387,44 +133,25 @@ function showPropDetail(dir){
   document.getElementById('propDetail').style.display = '';
   document.getElementById('propDetailTitle').textContent = '🏠 ' + dir;
   document.getElementById('propDetail').scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  document.getElementById('propKpiGrid').innerHTML = [
-    ['Arreglos Registrados', p.count],
-    ['Total Invertido', fmtF(p.totalInvested)]
-  ].map(([l,v])=>`<div class="stat-box"><div class="stat-lbl">${l}</div><div class="stat-val">${v}</div></div>`).join('');
-
+  document.getElementById('propKpiGrid').innerHTML = [['Arreglos Registrados', p.count],['Total Invertido', fmtF(p.totalInvested)]].map(([l,v])=>'<div class="stat-box"><div class="stat-lbl">'+l+'</div><div class="stat-val">'+v+'</div></div>').join('');
   const mProv = {};
   p.rows.forEach(r=>{ if(r.prov && r.prov!=='Sin asignar') mProv[r.prov] = (mProv[r.prov]||0) + r.cost; });
   const totalBilledDir = Object.values(mProv).reduce((a,b)=>a+b, 0) || 1;
-  
-  document.getElementById('propProvShare').innerHTML = Object.entries(mProv)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([prov, total])=>`<div style="display:flex;justify-content:space-between;font-size:13px;background:var(--bg);padding:6px 12px;border-radius:6px;">
-      <span>${prov}</span><span style="font-weight:600;color:var(--green)">${Math.round((total/totalBilledDir)*100)}% (${fmtF(total)})</span>
-    </div>`).join('');
-
-  document.getElementById('propDetailBody').innerHTML = p.rows.map(r=>`<tr>
-    <td style="font-size:12px;white-space:nowrap">${r.date}</td>
-    <td style="font-size:12px;max-width:300px">${r.desc}</td>
-    <td style="font-size:13px">${r.prov}</td>
-    <td class="tr" style="font-weight:600;color:var(--green)">${fmtF(r.cost)}</td>
-  </tr>`).join('');
+  document.getElementById('propProvShare').innerHTML = Object.entries(mProv).sort((a,b)=>b[1]-a[1]).map(([prov, total])=>'<div style="display:flex;justify-content:space-between;font-size:13px;background:var(--bg);padding:6px 12px;border-radius:6px;"><span>'+prov+'</span><span style="font-weight:600;color:var(--green)">'+Math.round((total/totalBilledDir)*100)+'% ('+fmtF(total)+')</span></div>').join('');
+  document.getElementById('propDetailBody').innerHTML = p.rows.map(r=>'<tr><td style="font-size:12px;white-space:nowrap">'+r.date+'</td><td style="font-size:12px;max-width:300px">'+r.desc+'</td><td style="font-size:13px">'+r.prov+'</td><td class="tr" style="font-weight:600;color:var(--green)">'+fmtF(r.cost)+'</td></tr>').join('');
 }
 
 function renderProveedores(){
   const pPerf = {};
-
   store.general.forEach(r=>{
     const pr = (r['Contratista Asignado']||'').trim(); if(!pr || pr==='Sin asignar') return;
     if(!pPerf[pr]) pPerf[pr] = { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     pPerf[pr].totalJobs++;
   });
-
   store.reclamos.forEach(r=>{
     const pr = (r['Contratista Asignado']||'').trim(); if(!pr || pr==='Sin asignar') return;
     if(!pPerf[pr]) pPerf[pr] = { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     pPerf[pr].totalJobs++;
-
     const rDate = pD(r['Fecha Recepción Mail']), dDate = pD(r['Fecha Visita/Diagnóstico']);
     if(rDate && dDate){
       const dDays = diff(rDate, dDate);
@@ -433,49 +160,26 @@ function renderProveedores(){
     if((r['Precio Acorde Mercado']||'').toLowerCase().includes('acorde')) pPerf[pr].okPrice++;
     if((r['Conformidad Inquilino']||'').toLowerCase().includes('conforme')) pPerf[pr].okClient++;
   });
-
   const pFields = ['Plomeria','Gas','Calderas','Electricidad','Albañileria menor','Albañileria mayor','Carpinteria','Colocacion pisos madera','Durlock','Herrería','Pintura','Aires Acondicionados'];
-
   const grid = document.getElementById('provGrid');
   grid.innerHTML = store.proveedores.map(p=>{
     const name = p['Proveedor'];
     if(!name || name.includes('S/ Asignar') || name.includes('Duplicado')) return '';
-
     const specs = pFields.filter(f=> (p[f]||'').toString().toUpperCase() === 'SI');
     const mainSpec = specs[0] || 'Servicios Generales';
     const secSpec = specs.slice(1, 3);
-
     const stats = pPerf[name] || { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     const avgDays = stats.currentTimes.length ? (stats.currentTimes.reduce((a,b)=>a+b,0)/stats.currentTimes.length).toFixed(1) + ' días' : 'S/ Datos';
-    
     let rating = 3;
     if(stats.totalJobs > 0 && stats.currentTimes.length){
       const scoreRatio = (stats.okPrice + stats.okClient) / (stats.totalJobs || 1);
       rating = Math.min(5, Math.max(1, Math.round(3 + scoreRatio * 2)));
     }
     const starStr = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-
-    return `<div class="prov-card">
-      <div class="prov-head">
-        <div>
-          <div class="prov-name">${name}</div>
-          <div class="prov-contact">📞 ${p['Contacto'] || 'Sin número'}</div>
-        </div>
-        <div class="prov-stars">${starStr}</div>
-      </div>
-      <div class="prov-tags">
-        <span class="tag-main">${mainSpec}</span>
-        ${secSpec.map(s=> `<span class="tag-sec">${s}</span>`).join('')}
-      </div>
-      <div class="prov-metrics">
-        <div><div class="pm-lbl">Reparaciones Realizadas</div><div class="pm-val">${stats.totalJobs}</div></div>
-        <div><div class="pm-lbl">Tiempo Rta. (Nuevos)</div><div class="pm-val" style="color:var(--green)">${avgDays}</div></div>
-      </div>
-    </div>`;
+    const secTags = secSpec.map(s=> '<span class="tag-sec">'+s+'</span>').join('');
+    return '<div class="prov-card"><div class="prov-head"><div><div class="prov-name">'+name+'</div><div class="prov-contact">📞 '+(p['Contacto'] || 'Sin número')+'</div></div><div class="prov-stars">'+starStr+'</div></div><div class="prov-tags"><span class="tag-main">'+mainSpec+'</span>'+secTags+'</div><div class="prov-metrics"><div><div class="pm-lbl">Reparaciones Realizadas</div><div class="pm-val">'+stats.totalJobs+'</div></div><div><div class="pm-lbl">Tiempo Rta. (Nuevos)</div><div class="pm-val" style="color:var(--green)">'+avgDays+'</div></div></div></div>';
   }).join('');
 }
 
 load();
 </script>
-</body>
-</html>
