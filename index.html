@@ -3,527 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administraciones de la Patagonia · Sistema de Gestión</title>
+    <title>Administraciones de la Patagonia · Dashboard Consolidado</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     <style>
-        :root {
-            --green: #1F6C43; --green-l: #2d8a57; --green-xl: #e8f5ee; --gold: #D4AF37;
-            --text: #1a2e22; --text2: #4a6555; --bg: #f7f8f6; --radius: 14px;
-        }
-        body { background: var(--bg); color: var(--text); font-family: 'Source Sans 3', sans-serif; }
+        :root { --green: #1F6C43; --gold: #D4AF37; --bg: #f7f8f6; --radius: 14px; }
+        body { background: var(--bg); font-family: 'Source Sans 3', sans-serif; color: #1a2e22; }
         .font-head { font-family: 'Playfair Display', serif; }
         .kpi-card { background: white; border-radius: var(--radius); border-top: 4px solid var(--green); transition: all 0.3s; }
-        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .tab-btn { border-bottom: 3px solid transparent; transition: all 0.3s; color: #8aab96; font-weight: 600; }
+        .tab-btn { border-bottom: 3px solid transparent; color: #8aab96; font-weight: 600; }
         .tab-btn.active { border-bottom-color: var(--green); color: var(--green); }
-        .urg-alta { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-        .urg-media { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
-        .urg-baja { background: #e8f5ee; color: #1f6c43; border: 1px solid #bbf7d0; }
-        .table-wrap { overflow-x: auto; background: white; border-radius: var(--radius); border: 1px solid #e2e8e4; }
-        th { background: #f8fafc; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #64748b; padding: 12px; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-        #loader { background: rgba(255,255,255,0.9); z-index: 100; }
-        .badge { padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+        .badge-actual { background: #dcfce7; color: #166534; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
+        .badge-hist { background: #f1f5f9; color: #475569; font-size: 10px; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body class="antialiased">
 
-    <div id="loader" class="fixed inset-0 flex flex-col items-center justify-center hidden">
+    <div id="loader" class="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center hidden">
         <div class="w-12 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-4 font-bold text-green-800">Sincronizando con Google Sheets...</p>
+        <p class="mt-4 font-bold text-green-800 uppercase tracking-widest text-xs">Sincronizando Archivos...</p>
     </div>
 
     <!-- HEADER -->
     <header class="bg-[#1F6C43] text-white px-8 py-6 shadow-xl sticky top-0 z-50">
         <div class="max-w-[1400px] mx-auto flex justify-between items-center">
             <div>
-                <h1 class="font-head text-2xl tracking-tight">ADMINISTRACIONES DE LA <span class="text-[#D4AF37]">PATAGONIA</span></h1>
-                <p class="text-[10px] uppercase tracking-[0.2em] opacity-70">Proptech Management · Neuquén & Región</p>
+                <h1 class="font-head text-2xl">ADMINISTRACIONES DE LA <span class="text-[#D4AF37]">PATAGONIA</span></h1>
+                <p class="text-[10px] uppercase tracking-widest opacity-70">Sistema de Gestión Consolidado (Actual + Histórico)</p>
             </div>
-            <div class="flex items-center gap-6">
-                <div class="text-right">
-                    <p class="text-xs opacity-60 uppercase">Última actualización</p>
-                    <p id="lastSync" class="text-sm font-bold">--:--</p>
-                </div>
-                <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-5 py-2 rounded-lg font-bold text-sm transition shadow-lg">↻ ACTUALIZAR</button>
-            </div>
+            <button onclick="loadData()" class="bg-[#D4AF37] hover:bg-yellow-600 px-6 py-2 rounded-lg font-bold text-sm shadow-lg transition">↻ ACTUALIZAR DATOS</button>
         </div>
     </header>
 
     <!-- NAVEGACIÓN -->
     <nav class="bg-white border-b border-gray-200 sticky top-[88px] z-40">
         <div class="max-w-[1400px] mx-auto px-8 flex gap-8">
-            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-4">📊 Dashboard General</button>
-            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-4">🏠 Auditoría de Propiedades</button>
-            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-4">👷 Performance de Contratistas</button>
+            <button onclick="switchTab('dash')" id="tab-dash" class="tab-btn active py-4">📊 Dashboard</button>
+            <button onclick="switchTab('props')" id="tab-props" class="tab-btn py-4">🏠 Propiedades</button>
+            <button onclick="switchTab('provs')" id="tab-provs" class="tab-btn py-4">👷 Contratistas</button>
         </div>
     </nav>
 
     <main class="max-w-[1400px] mx-auto p-8">
 
-        <!-- FILTROS -->
+        <!-- FILTROS ESTRATÉGICOS -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 flex flex-wrap gap-6 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Filtrar por Período</label>
-                <div class="flex gap-2">
-                    <select id="fYear" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm"></select>
-                    <select id="fMonth" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm"></select>
-                </div>
+            <div class="min-w-[200px]">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Fuente de Datos</label>
+                <select id="fSource" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm font-bold text-green-800">
+                    <option value="all">📂 Ver Todo (Consolidado)</option>
+                    <option value="ACTUAL" selected>⚡ Operación Actual</option>
+                    <option value="HISTORICO">📜 Archivo Histórico</option>
+                </select>
             </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Estado de Reparación</label>
+            <div class="min-w-[150px]">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Año</label>
+                <select id="fYear" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm"></select>
+            </div>
+            <div class="min-w-[150px]">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-2">Estado</label>
                 <select id="fStatus" onchange="applyFilters()" class="w-full bg-gray-50 border border-gray-200 p-2 rounded-lg text-sm">
                     <option value="all">Todos los estados</option>
                     <option value="Terminado" selected>Terminado</option>
                     <option value="En Proceso">En Proceso</option>
                 </select>
             </div>
-            <div class="text-right">
-                <p id="countLabel" class="text-2xl font-black text-green-700">0</p>
-                <p class="text-[10px] uppercase font-bold text-gray-400">Reclamos activos</p>
+            <div class="ml-auto text-right">
+                <p id="countLabel" class="text-3xl font-black text-green-700">0</p>
+                <p class="text-[10px] uppercase font-bold text-gray-400">Registros encontrados</p>
             </div>
         </div>
 
-        <!-- SECCIÓN: DASHBOARD -->
+        <!-- SECCIÓN DASHBOARD -->
         <div id="view-dash">
-            <!-- KPIs -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-                <div class="kpi-card p-6 shadow-sm border-l-4 border-green-600">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Gasto Total</p>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="kpi-card p-6 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Inversión Gestionada</p>
                     <h2 id="kpi-total" class="text-3xl font-black text-green-800 mt-1">$ 0</h2>
-                    <p class="text-[10px] text-gray-500 mt-1">Mano de Obra + Mat.</p>
                 </div>
-                <div class="kpi-card p-6 shadow-sm border-l-4 border-gold">
+                <div class="kpi-card p-6 shadow-sm">
                     <p class="text-xs font-bold text-gray-400 uppercase">SLA Promedio</p>
                     <h2 id="kpi-sla" class="text-3xl font-black text-amber-700 mt-1">0 d</h2>
-                    <p class="text-[10px] text-gray-500 mt-1">Días ingreso a asignación</p>
                 </div>
-                <div class="kpi-card p-6 shadow-sm border-l-4 border-red-500">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Urgencia Alta</p>
-                    <h2 id="kpi-alta" class="text-3xl font-black text-red-700 mt-1">0</h2>
-                    <p class="text-[10px] text-gray-500 mt-1">Casos críticos hoy</p>
+                <div class="kpi-card p-6 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Ticket Medio</p>
+                    <h2 id="kpi-avg" class="text-3xl font-black text-blue-800 mt-1">$ 0</h2>
                 </div>
-                <div class="kpi-card p-6 shadow-sm border-l-4 border-blue-500">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Ticket Promedio</p>
-                    <h2 id="kpi-avg-ticket" class="text-3xl font-black text-blue-800 mt-1">$ 0</h2>
-                    <p class="text-[10px] text-gray-500 mt-1">Costo medio por arreglo</p>
-                </div>
-                <div class="kpi-card p-1 shadow-sm overflow-hidden flex flex-col items-center justify-center bg-gray-50">
-                   <div class="text-[10px] uppercase font-bold text-gray-400">Distribución Urgencia</div>
-                   <div class="flex gap-2 mt-2">
-                       <div id="uA" class="badge urg-alta">0</div>
-                       <div id="uM" class="badge urg-media">0</div>
-                       <div id="uB" class="badge urg-baja">0</div>
-                   </div>
+                <div class="kpi-card p-6 shadow-sm">
+                    <p class="text-xs font-bold text-gray-400 uppercase">Casos Críticos</p>
+                    <h2 id="kpi-urg" class="text-3xl font-black text-red-700 mt-1">0</h2>
                 </div>
             </div>
 
-            <!-- GRÁFICOS Y SLA STATS -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h3 class="font-bold text-gray-700 mb-6 flex items-center gap-2">
-                        <span class="w-1 h-5 bg-green-700 rounded-full"></span> Evolución Mensual de Reclamos
-                    </h3>
-                    <div class="h-[300px]"><canvas id="chartEvo"></canvas></div>
-                </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h3 class="font-bold text-gray-700 mb-6 flex items-center gap-2">
-                        <span class="w-1 h-5 bg-gold rounded-full"></span> Análisis de SLA (Tiempos)
-                    </h3>
-                    <div id="slaStats" class="space-y-4">
-                        <!-- Stats dinámicas -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- TABLA POR RUBRO -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-                    <h3 class="font-bold text-gray-700 uppercase text-xs tracking-widest">Desglose por Rubro Operativo</h3>
-                </div>
-                <div class="table-wrap border-none rounded-none">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr>
-                                <th>Rubro</th>
-                                <th class="text-center">Cant.</th>
-                                <th>Participación %</th>
-                                <th class="text-right">Mano de Obra</th>
-                                <th class="text-right">Materiales</th>
-                                <th class="text-right">Inversión Total</th>
-                                <th class="text-right">Ticket Medio</th>
-                                <th>Proveedor Líder</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyRubros"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN: PROPIEDADES -->
-        <div id="view-props" class="hidden">
-            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-head text-xl text-green-800">Ranking de Inversión por Propiedad</h3>
-                    <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar por dirección o propietario..." class="border border-gray-200 rounded-lg px-4 py-2 text-sm w-80 shadow-sm focus:ring-2 focus:ring-green-500 outline-none">
-                </div>
-                <div class="table-wrap">
-                    <table class="w-full text-left" id="tableProps">
-                        <thead>
-                            <tr>
-                                <th>Dirección</th>
-                                <th>Propietario</th>
-                                <th class="text-center">Reclamos</th>
-                                <th class="text-right">Gasto Total</th>
-                                <th>Rubros Frecuentes</th>
-                                <th class="text-right">Último Gasto</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyProps"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN: PROVEEDORES -->
-        <div id="view-provs" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-                    <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Participación de Contratistas</h3>
-                    <div class="h-[300px]"><canvas id="chartProvs"></canvas></div>
+                    <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Gasto por Rubro</h3>
+                    <canvas id="chartRubros" height="300"></canvas>
                 </div>
                 <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                    <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Evaluación Técnica</h3>
-                    <div class="table-wrap border-none">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr>
-                                    <th>Proveedor</th>
-                                    <th>Calificación</th>
-                                    <th class="text-center">Trabajos</th>
-                                    <th class="text-right">Gasto Gestionado</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bodyProvsRanking"></tbody>
-                        </table>
-                    </div>
+                    <h3 class="font-bold text-gray-700 mb-4 uppercase text-xs tracking-widest">Resumen de Inversión por Categoría</h3>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
+                            <tr><th>Rubro</th><th class="text-right">Cant.</th><th class="text-right">Total</th></tr>
+                        </thead>
+                        <tbody id="bodyRubrosTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN PROPIEDADES -->
+        <div id="view-props" class="hidden">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <input type="text" id="searchProp" onkeyup="filterProps()" placeholder="🔍 Buscar propiedad o propietario..." class="w-full border border-gray-200 rounded-lg p-3 mb-6 outline-none focus:ring-2 focus:ring-green-500">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm" id="tableProps">
+                        <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
+                            <tr>
+                                <th>Fuente</th>
+                                <th>Dirección</th>
+                                <th>Propietario</th>
+                                <th class="text-center">Arreglos</th>
+                                <th class="text-right">Inversión Acum.</th>
+                                <th>Rubro Principal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyProps" class="divide-y divide-gray-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CONTRATISTAS -->
+        <div id="view-provs" class="hidden">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <h3 class="font-bold text-gray-700 mb-6 uppercase text-xs tracking-widest">Ranking de Contratistas</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 uppercase text-[10px] text-gray-400">
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>Especialidad</th>
+                                <th>Rating</th>
+                                <th class="text-center">Trabajos</th>
+                                <th class="text-right">Total Facturado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyProvs" class="divide-y divide-gray-100"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <footer class="bg-gray-800 text-white py-12 px-8 mt-20">
-        <div class="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div class="text-center md:text-left">
-                <p class="font-head text-xl">ADMINISTRACIONES DE LA PATAGONIA</p>
-                <p class="text-xs opacity-50 mt-2 tracking-widest uppercase">Criterio · Eficiencia · Automatización</p>
-            </div>
-            <div class="text-xs opacity-40 text-center font-mono">
-                SLA DASHBOARD v2.5 · Powered by QuintoAndar Model · Neuquén, Argentina
-            </div>
-        </div>
-    </footer>
-
     <script>
-        // CONFIGURACIÓN Y ESTADO
-        const API_URL = "https://script.google.com/macros/s/AKfycbxUyb0ix_0mWlk55OdeiKL5z4M5h4hP0C_0IAE_Eq3xw7loRz0iS7m-yz1CMH34PwD1ag/exec";
-        const RUBROS_CONF = {
-            'Calefacción': ['caldera', 'calefactor', 'radiador', 'bomba presurizadora', 'termo'],
-            'Plomería': ['agua', 'canilla', 'bacha', 'inodoro', 'bidet', 'cañeria', 'desague', 'perdida'],
-            'Electricidad': ['luz', 'termica', 'disyuntor', 'enchufe', 'cable', 'corto'],
-            'Gas': ['gas', 'cocina', 'anafe', 'horno', 'termocupla'],
-            'Humedad/Obra': ['humedad', 'filtracion', 'techo', 'pintura', 'cielo razo', 'durlock', 'pared'],
-            'Aperturas': ['puerta', 'ventana', 'cerradura', 'picaporte', 'bisagra', 'persiana']
-        };
+        const API_URL = "https://script.google.com/macros/s/AKfycbxqGnBQHBOAm_eMQIU4stZZtZdavFZLIilDYfVa-RntV13VQGXUXURqfZTExx3Ua7NU_g/exec";
+        let rawData = [], filtered = [], providers = [], charts = {};
 
-        let rawReclamos = [];
-        let rawProveedores = [];
-        let filteredData = [];
-        let charts = {};
-
-        // INICIO: CARGA DE DATOS
         async function loadData() {
             toggleLoader(true);
             try {
-                const response = await fetch(`${API_URL}?t=${Date.now()}`);
-                const res = await response.json();
-                if (res.ok) {
-                    rawReclamos = res.reclamos;
-                    rawProveedores = res.proveedores;
+                const res = await fetch(`${API_URL}?t=${Date.now()}`);
+                const json = await res.json();
+                if(json.ok) {
+                    rawData = json.reclamos;
+                    providers = json.proveedores;
                     initFilters();
                     applyFilters();
-                    document.getElementById('lastSync').innerText = new Date().toLocaleTimeString();
                 }
-            } catch (e) {
-                console.error("Error cargando datos:", e);
-            } finally {
-                toggleLoader(false);
-            }
+            } catch (e) { alert("Error de conexión"); }
+            finally { toggleLoader(false); }
         }
 
         function initFilters() {
-            const years = [...new Set(rawReclamos.map(r => r['Mes']?.split('-')[1]))].filter(Boolean).sort().reverse();
-            const yearSel = document.getElementById('fYear');
-            yearSel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-            
-            const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            const monthSel = document.getElementById('fMonth');
-            monthSel.innerHTML = '<option value="all">Todos los meses</option>' + months.map((m, i) => `<option value="${i+1}">${m}</option>`).join('');
+            const years = [...new Set(rawData.map(r => (r['Mes']||'').split('-')[1]))].filter(Boolean).sort().reverse();
+            document.getElementById('fYear').innerHTML = '<option value="all">Todos los años</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
         }
 
         function applyFilters() {
-            const y = document.getElementById('fYear').value;
-            const m = document.getElementById('fMonth').value;
-            const s = document.getElementById('fStatus').value;
+            const source = document.getElementById('fSource').value;
+            const year = document.getElementById('fYear').value;
+            const status = document.getElementById('fStatus').value;
 
-            filteredData = rawReclamos.filter(r => {
-                const [rm, ry] = (r['Mes'] || "").split('-');
-                const matchY = ry === y;
-                const matchM = m === 'all' || rm === m;
-                const matchS = s === 'all' || r['Estado Reparacion'] === s;
-                return matchY && matchM && matchS && r['Estado Reparacion'] !== 'Pedido Duplicado';
+            filtered = rawData.filter(r => {
+                const [m, y] = (r['Mes']||'').split('-');
+                const matchSrc = source === 'all' || r._origen === source;
+                const matchY = year === 'all' || y === year;
+                const matchS = status === 'all' || r['Estado Reparacion'] === status;
+                return matchSrc && matchY && matchS && r['Estado Reparacion'] !== 'Pedido Duplicado' && r['DIRECCION'];
             });
 
-            processAndRender();
+            renderDashboard();
+            renderProperties();
+            renderProviders();
         }
 
-        function processAndRender() {
-            // Cálculos Financieros y SLA
-            let totalGasto = 0, totalMO = 0, totalMat = 0, slaTotal = 0, slaCount = 0;
-            const rubroMap = {}, propMap = {}, provMap = {}, monthEvo = {};
+        function renderDashboard() {
+            let total = 0, slaTotal = 0, slaCount = 0, urgentes = 0;
+            const rubros = {};
 
-            filteredData.forEach(r => {
-                const mo = parseFinance(r['Mano de Obra']);
-                const mat = parseFinance(r['Materiales']);
-                const total = mo + mat;
-                const rubro = detectRubro(r['PEDIDO DE REPARACION']);
-                const prov = r['Contratista Asignado'] || 'S/ Asignar';
+            filtered.forEach(r => {
+                const mo = parseFloat(r['Mano de Obra']) || 0;
+                const mat = parseFloat(r['Materiales']) || 0;
+                total += (mo + mat);
+                
+                if((r['Urgencia']||'').includes('Alta')) urgentes++;
 
-                totalGasto += total; totalMO += mo; totalMat += mat;
-
-                // SLA
-                const dRec = parseDate(r['Recepción Reclamo']);
-                const dAsig = parseDate(r['Fecha de Asignación']);
-                if (dRec && dAsig) {
-                    const diff = Math.floor((dAsig - dRec) / (1000*60*60*24));
-                    if (diff >= 0) { slaTotal += diff; slaCount++; r._sla = diff; }
+                const dRec = r['Recepción Reclamo'] ? new Date(r['Recepción Reclamo']) : null;
+                const dAsig = r['Fecha de Asignación'] ? new Date(r['Fecha de Asignación']) : null;
+                if(dRec && dAsig && dAsig >= dRec) {
+                    slaTotal += Math.floor((dAsig - dRec) / 864e5);
+                    slaCount++;
                 }
 
-                // Agrupaciones
-                if (!rubroMap[rubro]) rubroMap[rubro] = { count: 0, mo: 0, mat: 0, provs: {} };
-                rubroMap[rubro].count++; rubroMap[rubro].mo += mo; rubroMap[rubro].mat += mat;
-                rubroMap[rubro].provs[prov] = (rubroMap[rubro].provs[prov] || 0) + 1;
-
-                const dir = r['DIRECCION'] || 'S/ Dir';
-                if (!propMap[dir]) propMap[dir] = { dir, prop: r['PROPIETARIO'], count: 0, gasto: 0, rubros: new Set() };
-                propMap[dir].count++; propMap[dir].gasto += total; propMap[dir].rubros.add(rubro); propMap[dir]._lastGasto = total;
-
-                provMap[prov] = (provMap[prov] || 0) + total;
-
-                const mesStr = r['Mes'];
-                monthEvo[mesStr] = (monthEvo[mesStr] || 0) + 1;
+                const rub = detectRubro(r['PEDIDO DE REPARACION']);
+                if(!rubros[rub]) rubros[rub] = { n: 0, val: 0 };
+                rubros[rub].n++; rubros[rub].val += (mo + mat);
             });
 
-            // Actualizar UI
-            document.getElementById('countLabel').innerText = filteredData.length;
-            document.getElementById('kpi-total').innerText = fmtMoney(totalGasto);
-            document.getElementById('kpi-sla').innerText = slaCount ? `${(slaTotal/slaCount).toFixed(1)} d` : '0 d';
-            document.getElementById('kpi-alta').innerText = filteredData.filter(r => (r['Urgencia']||"").includes("1-Alta")).length;
-            document.getElementById('kpi-avg-ticket').innerText = filteredData.length ? fmtMoney(totalGasto/filteredData.length) : '$ 0';
-            
-            document.getElementById('uA').innerText = filteredData.filter(r => (r['Urgencia']||"").includes("1-Alta")).length;
-            document.getElementById('uM').innerText = filteredData.filter(r => (r['Urgencia']||"").includes("2-Media")).length;
-            document.getElementById('uB').innerText = filteredData.filter(r => (r['Urgencia']||"").includes("3-Baja")).length;
+            document.getElementById('kpi-total').innerText = fmt(total);
+            document.getElementById('kpi-sla').innerText = slaCount ? (slaTotal/slaCount).toFixed(1) + ' d' : '--';
+            document.getElementById('kpi-avg').innerText = filtered.length ? fmt(total/filtered.length) : '$ 0';
+            document.getElementById('kpi-urg').innerText = urgentes;
+            document.getElementById('countLabel').innerText = filtered.length;
 
-            renderSLAStats(filteredData.filter(r => r._sla !== undefined).map(r => r._sla));
-            renderRubrosTable(rubroMap, filteredData.length);
-            renderPropsTable(Object.values(propMap));
-            renderProvsRanking(provMap);
-            
-            updateCharts(monthEvo, provMap);
+            renderRubrosTable(rubros);
+            updateChart(rubros);
         }
 
-        // HELPERS UI
-        function renderSLAStats(slas) {
-            const container = document.getElementById('slaStats');
-            if (!slas.length) { container.innerHTML = '<p class="text-gray-400 italic text-sm">Sin datos de fechas suficientes</p>'; return; }
-            
-            const avg = (slas.reduce((a,b)=>a+b,0) / slas.length).toFixed(1);
-            const max = Math.max(...slas);
-            const min = Math.min(...slas);
-            const med = slas.sort((a,b)=>a-b)[Math.floor(slas.length/2)];
+        function renderProperties() {
+            const props = {};
+            filtered.forEach(r => {
+                const dir = r['DIRECCION'];
+                if(!props[dir]) props[dir] = { dir, prop: r['PROPIETARIO'], n: 0, val: 0, rub: '', src: r._origen };
+                props[dir].n++;
+                props[dir].val += (parseFloat(r['Mano de Obra']) || 0) + (parseFloat(r['Materiales']) || 0);
+                props[dir].rub = detectRubro(r['PEDIDO DE REPARACION']);
+            });
 
-            container.innerHTML = `
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border-l-4 border-green-600">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Promedio</span>
-                    <span class="text-lg font-black text-green-800">${avg} días</span>
-                </div>
-                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border-l-4 border-amber-500">
-                    <span class="text-xs font-bold text-gray-500 uppercase">Mediana</span>
-                    <span class="text-lg font-black text-amber-700">${med} días</span>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-3 rounded-lg border-l-4 border-blue-500">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase">Rápido</p>
-                        <p class="text-lg font-black text-blue-700">${min} d</p>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg border-l-4 border-red-500">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase">Lento</p>
-                        <p class="text-lg font-black text-red-700">${max} d</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderRubrosTable(map, totalCount) {
-            const tbody = document.getElementById('bodyRubros');
-            tbody.innerHTML = Object.entries(map).sort((a,b) => b[1].count - a[1].count).map(([name, data]) => {
-                const total = data.mo + data.mat;
-                const pct = ((data.count / totalCount) * 100).toFixed(1);
-                const leader = Object.entries(data.provs).sort((a,b)=>b[1]-a[1])[0][0];
-                return `
-                    <tr>
-                        <td class="font-bold text-gray-800">${name}</td>
-                        <td class="text-center font-bold text-gray-500">${data.count}</td>
-                        <td>
-                            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                <div class="bg-green-600 h-full" style="width: ${pct}%"></div>
-                            </div>
-                            <span class="text-[10px] font-bold text-gray-400">${pct}%</span>
-                        </td>
-                        <td class="text-right text-gray-500 font-mono">${fmtMoney(data.mo)}</td>
-                        <td class="text-right text-gray-500 font-mono">${fmtMoney(data.mat)}</td>
-                        <td class="text-right font-bold text-green-700 font-mono">${fmtMoney(total)}</td>
-                        <td class="text-right text-blue-600 font-bold font-mono">${fmtMoney(total/data.count)}</td>
-                        <td><span class="badge bg-gray-100 text-gray-600">${leader.substring(0,15)}</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderPropsTable(props) {
-            const tbody = document.getElementById('bodyProps');
-            tbody.innerHTML = props.sort((a,b)=>b.gasto-a.gasto).slice(0,50).map(p => `
-                <tr class="hover:bg-gray-50 transition cursor-pointer">
-                    <td class="font-bold text-green-900">${p.dir}</td>
-                    <td class="text-xs text-gray-500 uppercase">${p.prop || '---'}</td>
-                    <td class="text-center"><span class="badge bg-green-100 text-green-800">${p.count}</span></td>
-                    <td class="text-right font-black text-gray-700">${fmtMoney(p.gasto)}</td>
-                    <td>${[...p.rubros].map(r => `<span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded mr-1">${r}</span>`).join('')}</td>
-                    <td class="text-right text-xs opacity-60">${fmtMoney(p._lastGasto)}</td>
-                    <td><button class="text-[10px] font-bold text-amber-600 border border-amber-200 px-2 py-1 rounded hover:bg-amber-50">AUDITAR</button></td>
+            document.getElementById('bodyProps').innerHTML = Object.values(props).sort((a,b)=>b.val-a.val).map(p => `
+                <tr>
+                    <td><span class="${p.src === 'ACTUAL' ? 'badge-actual' : 'badge-hist'}">${p.src}</span></td>
+                    <td class="font-bold">${p.dir}</td>
+                    <td class="text-gray-500 text-xs">${p.prop}</td>
+                    <td class="text-center">${p.n}</td>
+                    <td class="text-right font-bold text-green-700">${fmt(p.val)}</td>
+                    <td><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded">${p.rub}</span></td>
                 </tr>
             `).join('');
         }
 
-        function renderProvsRanking(map) {
-            const tbody = document.getElementById('bodyProvsRanking');
-            const totalGasto = Object.values(map).reduce((a,b)=>a+b,0);
-            
-            tbody.innerHTML = rawProveedores.map(p => {
-                const gasto = map[p.Nombre] || 0;
-                const pct = totalGasto ? ((gasto/totalGasto)*100).toFixed(1) : 0;
-                const stars = "⭐".repeat(parseInt(p.Calificacion));
+        function renderProviders() {
+            const pStats = {};
+            filtered.forEach(r => {
+                const p = r['Contratista Asignado'] || 'S/ Asignar';
+                if(!pStats[p]) pStats[p] = { n: 0, val: 0 };
+                pStats[p].n++;
+                pStats[p].val += (parseFloat(r['Mano de Obra']) || 0) + (parseFloat(r['Materiales']) || 0);
+            });
+
+            document.getElementById('bodyProvs').innerHTML = providers.map(p => {
+                const s = pStats[p['Nombre']] || { n: 0, val: 0 };
                 return `
                     <tr>
-                        <td>
-                            <p class="font-bold text-gray-800">${p.Nombre}</p>
-                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">${p['Especialidad Principal']}</p>
-                        </td>
-                        <td class="text-lg">${stars}</td>
-                        <td class="text-center font-bold text-gray-400">${filteredData.filter(r => r['Contratista Asignado'] === p.Nombre).length}</td>
-                        <td class="text-right">
-                            <p class="font-bold text-green-700">${fmtMoney(gasto)}</p>
-                            <p class="text-[10px] text-gray-400">${pct}% del total</p>
-                        </td>
+                        <td class="font-bold">${p['Nombre']}</td>
+                        <td class="text-xs text-gray-400 uppercase">${p['Especialidad Principal']}</td>
+                        <td class="text-amber-500">${'⭐'.repeat(p['Calificacion'])}</td>
+                        <td class="text-center">${s.n}</td>
+                        <td class="text-right font-bold text-green-700">${fmt(s.val)}</td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function updateCharts(evo, provs) {
-            // Chart Evolución
-            if(charts.evo) charts.evo.destroy();
-            const evoLabels = Object.keys(evo).sort((a,b) => {
-                const [ma, ya] = a.split('-'), [mb, yb] = b.split('-');
-                return (ya + ma.padStart(2,'0')) - (yb + mb.padStart(2,'0'));
-            });
-            charts.evo = new Chart(document.getElementById('chartEvo'), {
-                type: 'line',
+        // UTILS
+        function detectRubro(d) {
+            const s = (d||'').toLowerCase();
+            if(s.includes('caldera') || s.includes('radiador')) return 'Calefacción';
+            if(s.includes('agua') || s.includes('canilla') || s.includes('baño')) return 'Plomería';
+            if(s.includes('gas') || s.includes('cocina')) return 'Gas';
+            if(s.includes('luz') || s.includes('enchufe')) return 'Electricidad';
+            if(s.includes('humedad') || s.includes('pintura')) return 'Humedad/Pintura';
+            return 'Mantenimiento';
+        }
+
+        function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n); }
+
+        function updateChart(data) {
+            if(charts.rub) charts.rub.destroy();
+            const ctx = document.getElementById('chartRubros').getContext('2d');
+            charts.rub = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: evoLabels,
-                    datasets: [{ label: 'Reclamos', data: evoLabels.map(l => evo[l]), borderColor: '#1F6C43', backgroundColor: '#1f6c4322', fill: true, tension: 0.4 }]
+                    labels: Object.keys(data),
+                    datasets: [{ data: Object.values(data).map(x => x.val), backgroundColor: '#1F6C43' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
-
-            // Chart Proveedores
-            if(charts.provs) charts.provs.destroy();
-            const topProvs = Object.entries(provs).sort((a,b)=>b[1]-a[1]).slice(0,5);
-            charts.provs = new Chart(document.getElementById('chartProvs'), {
-                type: 'doughnut',
-                data: {
-                    labels: topProvs.map(x => x[0].substring(0,15)),
-                    datasets: [{ data: topProvs.map(x => x[1]), backgroundColor: ['#1F6C43', '#D4AF37', '#2D3748', '#4A5568', '#718096'] }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
         }
 
-        // UTILS GENERALES
-        function detectRubro(desc) {
-            const d = (desc || "").toLowerCase();
-            for (const [name, keywords] of Object.entries(RUBROS_CONF)) {
-                if (keywords.some(k => d.includes(k))) return name;
-            }
-            return 'Otros';
-        }
-
-        function parseFinance(val) {
-            if (!val) return 0;
-            if (typeof val === 'number') return val;
-            const s = String(val).replace(/[$\s.]/g, '').replace(',', '.');
-            const n = parseFloat(s);
-            return isNaN(n) ? 0 : n;
-        }
-
-        function parseDate(val) {
-            if (!val) return null;
-            // Maneja formato DD/MM/YYYY o ISO
-            if (val.includes('/')) {
-                const [d, m, y] = val.split('/');
-                return new Date(y, m-1, d);
-            }
-            return new Date(val);
-        }
-
-        function fmtMoney(n) {
-            return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n || 0);
+        function renderRubrosTable(data) {
+            document.getElementById('bodyRubrosTable').innerHTML = Object.entries(data).sort((a,b)=>b[1].val-a[1].val).map(([k,v])=>`
+                <tr><td class="py-2 font-bold text-gray-600">${k}</td><td class="text-right">${v.n}</td><td class="text-right font-bold text-green-700">${fmt(v.val)}</td></tr>
+            `).join('');
         }
 
         function switchTab(t) {
-            ['dash', 'props', 'provs'].forEach(tab => {
-                document.getElementById(`view-${tab}`).classList.add('hidden');
-                document.getElementById(`tab-${tab}`).classList.remove('active');
+            ['dash','props','provs'].forEach(x => {
+                document.getElementById(`view-${x}`).classList.toggle('hidden', x !== t);
+                document.getElementById(`tab-${x}`).classList.toggle('active', x === t);
             });
-            document.getElementById(`view-${t}`).classList.remove('hidden');
-            document.getElementById(`tab-${t}`).classList.add('active');
-        }
-
-        function toggleLoader(show) {
-            document.getElementById('loader').classList.toggle('hidden', !show);
         }
 
         function filterProps() {
             const q = document.getElementById('searchProp').value.toLowerCase();
-            const rows = document.getElementById('bodyProps').getElementsByTagName('tr');
-            for (let row of rows) { row.style.display = row.innerText.toLowerCase().includes(q) ? "" : "none"; }
+            const rows = document.getElementById('tableProps').getElementsByTagName('tr');
+            for(let i=1; i<rows.length; i++) rows[i].style.display = rows[i].innerText.toLowerCase().includes(q) ? '' : 'none';
         }
+
+        function toggleLoader(s) { document.getElementById('loader').classList.toggle('hidden', !s); }
 
         window.onload = loadData;
     </script>
