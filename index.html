@@ -78,18 +78,9 @@ tbody tr:hover td{background:var(--green-bg);}
 .rubro-tag{display:inline-block;background:var(--green-xl);color:var(--green);border-radius:100px;padding:2px 9px;font-size:11px;font-weight:600;}
 #propSearch{width:100%;padding:11px 16px;border:1.5px solid var(--border-g);border-radius:8px;background:var(--green-bg);font-family:var(--font-body);outline:none;margin-bottom:16px;}
 
-/* MATRIZ PROVEEDORES CARDS */
-.prov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
-.prov-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;}
-.prov-head{display:flex;justify-content:space-between;align-items:flex-start;}
-.prov-name{font-family:var(--font-head);font-size:17px;color:var(--green);font-weight:700;}
-.prov-stars{color:var(--gold);font-size:16px;letter-spacing:1px;}
-.prov-tags{display:flex;flex-wrap:wrap;gap:6px;}
-.tag-main{background:var(--green);color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600;}
-.tag-sec{background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:2px 8px;font-size:11px;}
-.prov-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;padding-top:12px;border-top:1px solid var(--border-g);}
-.pm-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
-.pm-val{font-size:15px;font-weight:700;color:var(--text);}
+/* LABELS PROVEEDORES */
+.tag-main{background:var(--green);color:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;display:inline-block;margin-right:4px;margin-bottom:4px;}
+.tag-sec{background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:3px 8px;font-size:11px;display:inline-block;margin-right:4px;margin-bottom:4px;}
 
 #loader{display:none;position:fixed;inset:0;background:rgba(247,248,246,0.9);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
 #loader.on{display:flex;}
@@ -191,7 +182,23 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
 <div id="tab-proveedores" style="display:none">
   <div class="page" style="padding-top:20px">
     <div class="section-label">Desempeño y Especialidades de Contratistas</div>
-    <div class="prov-grid" id="provGrid"></div>
+    <div class="card">
+      <div class="t-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Proveedor</th>
+              <th>Contacto</th>
+              <th>Especialidades</th>
+              <th class="tr">Trabajos Realizados</th>
+              <th class="tr">Promedio Rta.</th>
+              <th style="text-align:center">Calificación</th>
+            </tr>
+          </thead>
+          <tbody id="provGrid"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -515,13 +522,13 @@ function renderProveedores(){
 
     const specs = pFields.filter(function(f){ return (p[f]||'').toString().toUpperCase() === 'SI'; });
     const mainSpec = specs[0] || 'Servicios Generales';
-    const secSpec = specs.slice(1, 3);
+    const secSpec = specs.slice(1, 4); // Mostramos hasta 3 sub-especialidades
 
     const stats = pPerf[name] || { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     
     let timeSum = 0;
     for(let t=0; t<stats.currentTimes.length; t++) timeSum += stats.currentTimes[t];
-    const avgDays = stats.currentTimes.length ? (timeSum / stats.currentTimes.length).toFixed(1) + ' días' : 'S/ Datos';
+    const avgDays = stats.currentTimes.length ? (timeSum / stats.currentTimes.length).toFixed(1) + ' días' : '—';
     
     let rating = 3;
     if(stats.totalJobs > 0 && stats.currentTimes.length > 0){
@@ -538,27 +545,22 @@ function renderProveedores(){
         secTags += '<span class="tag-sec">' + secSpec[st] + '</span>';
     }
 
-    html += '<div class="prov-card">' +
-      '<div class="prov-head">' +
-        '<div>' +
-          '<div class="prov-name">' + name + '</div>' +
-          '<div class="prov-contact">📞 ' + (p['Contacto'] || 'Sin número') + '</div>' +
-        '</div>' +
-        '<div class="prov-stars">' + starStr + '</div>' +
-      '</div>' +
-      '<div class="prov-tags">' +
-        '<span class="tag-main">' + mainSpec + '</span>' +
-        secTags +
-      '</div>' +
-      '<div class="prov-metrics">' +
-        '<div><div class="pm-lbl">Reparaciones Realizadas</div><div class="pm-val">' + stats.totalJobs + '</div></div>' +
-        '<div><div class="pm-lbl">Tiempo Rta. (Nuevos)</div><div class="pm-val" style="color:var(--green)">' + avgDays + '</div></div>' +
-      '</div>' +
-    '</div>';
+    html += '<tr style="transition: background .15s ease;">' +
+      '<td style="font-weight:600;color:var(--green)">' + name + '</td>' +
+      '<td style="font-size:12px;color:var(--text2)">' + (p['Contacto'] || 'Sin dato') + '</td>' +
+      '<td><span class="tag-main">' + mainSpec + '</span>' + secTags + '</td>' +
+      '<td class="tr" style="font-weight:700">' + stats.totalJobs + '</td>' +
+      '<td class="tr" style="font-weight:600;color:var(--green)">' + avgDays + '</td>' +
+      '<td style="text-align:center;color:var(--gold);font-size:16px;letter-spacing:2px;" title="Calificación automática según conformidad y precios">' + starStr + '</td>' +
+    '</tr>';
   }
   
   const grid = document.getElementById('provGrid');
-  grid.innerHTML = html;
+  if(html === '') {
+      grid.innerHTML = '<tr><td colspan="6" class="nodata">No hay proveedores registrados en la matriz.</td></tr>';
+  } else {
+      grid.innerHTML = html;
+  }
 }
 
 // INICIO DE LA APLICACIÓN
