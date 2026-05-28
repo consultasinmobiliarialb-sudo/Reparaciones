@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Administraciones de la Patagonia · Panel de Control Operativo</title>
+<title>Administraciones de la Patagonia · Panel Operativo</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--green:#1F6C43;--green-l:#2d8a57;--green-xl:#e8f5ee;--green-bg:#f2faf5;--gold:#D4AF37;--gold-l:#f5e27a;--white:#ffffff;--bg:#f7f8f6;--surface:#ffffff;--border:#e2e8e4;--border-g:rgba(31,108,67,0.15);--text:#1a2e22;--text2:#4a6555;--text3:#8aab96;--shadow:0 2px 12px rgba(31,108,67,0.08);--shadow-lg:0 8px 32px rgba(31,108,67,0.12);--radius:14px;--font-head:'Playfair Display',Georgia,serif;--font-body:'Source Sans 3',sans-serif;}
@@ -70,6 +70,7 @@ thead th{font-size:11px;font-weight:700;color:var(--text3);text-transform:upperc
 tbody td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--text);}
 tbody tr:hover td{background:var(--green-bg);}
 .tr{text-align:right;}
+.tc{text-align:center;}
 .badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;}
 .b-g{background:var(--green-xl);color:var(--green);}
 .b-y{background:#fef9c3;color:#92400e;}
@@ -116,6 +117,7 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
   <span class="sync-lbl" id="slbl"></span>
 </div>
 
+<!-- TAB RECLAMOS ACTUALES -->
 <div id="tab-reclamos">
   <div class="kpi-strip">
     <div class="kpi kgreen"><div class="kpi-label">Reclamos Activos</div><div class="kpi-value" id="rk1">—</div><div class="kpi-sub">pestaña actual</div></div>
@@ -138,6 +140,7 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
   </div>
 </div>
 
+<!-- TAB ARCHIVO HISTORICO / PROPIEDADES -->
 <div id="tab-propiedades" style="display:none">
   <div class="kpi-strip">
     <div class="kpi kgreen"><div class="kpi-label font-green">Inmuebles Atendidos</div><div class="kpi-value" id="pK1">—</div><div class="kpi-sub">con registro histórico</div></div>
@@ -179,6 +182,7 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
   </div>
 </div>
 
+<!-- TAB MATRIZ PROVEEDORES (VISTA LISTA/TABLA) -->
 <div id="tab-proveedores" style="display:none">
   <div class="page" style="padding-top:20px">
     <div class="section-label">Desempeño y Especialidades de Contratistas</div>
@@ -192,7 +196,7 @@ footer{background:var(--green);padding:16px 40px;display:flex;align-items:center
               <th>Especialidades</th>
               <th class="tr">Trabajos Realizados</th>
               <th class="tr">Promedio Rta.</th>
-              <th style="text-align:center">Calificación</th>
+              <th class="tc">Calificación</th>
             </tr>
           </thead>
           <tbody id="provGrid"></tbody>
@@ -296,7 +300,27 @@ function go(){
   if(document.getElementById('tab-proveedores').style.display!=='none') renderProveedores();
 }
 
-function pN(v){const s=String(v||'').replace(/[\$\s\,]/g,'').replace(/[^0-9.\-]/g,'');const n=parseFloat(s);return isNaN(n)?0:Math.abs(n);}
+/* FUNCIÓN DE PARSEO BLINDADA CONTRA FECHAS Y TEXTOS */
+function pN(v){
+  if(!v) return 0;
+  let s = String(v).trim();
+  
+  // Si contiene barras o caracteres alfabéticos, se descarta (es una fecha o texto)
+  if(s.includes('/') || s.match(/[a-zA-Z]/)) return 0; 
+  
+  // Limpieza y estandarización a formato numérico (Argentina: punto para miles, coma para decimales)
+  s = s.replace(/[\$\s]/g, '');
+  if (s.includes('.') && s.includes(',')) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.includes(',')) {
+    s = s.replace(',', '.');
+  }
+  s = s.replace(/[^0-9.\-]/g, '');
+  
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : Math.abs(n);
+}
+
 function pD(v){if(!v)return null;const d=new Date(v);return isNaN(d)?null:d;}
 function diff(a,b){if(!a||!b)return null;return Math.round(Math.abs(b-a)/864e5);}
 function fmtF(n){return n?'$'+Math.round(n).toLocaleString('es-AR'):'—';}
@@ -522,7 +546,7 @@ function renderProveedores(){
 
     const specs = pFields.filter(function(f){ return (p[f]||'').toString().toUpperCase() === 'SI'; });
     const mainSpec = specs[0] || 'Servicios Generales';
-    const secSpec = specs.slice(1, 4); // Mostramos hasta 3 sub-especialidades
+    const secSpec = specs.slice(1, 4);
 
     const stats = pPerf[name] || { totalJobs: 0, currentTimes: [], okPrice: 0, okClient: 0 };
     
@@ -551,7 +575,7 @@ function renderProveedores(){
       '<td><span class="tag-main">' + mainSpec + '</span>' + secTags + '</td>' +
       '<td class="tr" style="font-weight:700">' + stats.totalJobs + '</td>' +
       '<td class="tr" style="font-weight:600;color:var(--green)">' + avgDays + '</td>' +
-      '<td style="text-align:center;color:var(--gold);font-size:16px;letter-spacing:2px;" title="Calificación automática según conformidad y precios">' + starStr + '</td>' +
+      '<td class="tc" style="color:var(--gold);font-size:16px;letter-spacing:2px;" title="Calificación automática según conformidad y precios">' + starStr + '</td>' +
     '</tr>';
   }
   
