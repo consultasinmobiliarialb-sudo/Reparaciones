@@ -755,7 +755,7 @@ function renderReclamos(){
   }).join('')||'<div class="nodata">Sin datos de conformidad aún</div>';
 
   // Aprobación propietario
-  const apSi=d.filter(r=>(r._reqApro.toLowerCase().includes('sí')||r._reqApro.toLowerCase().includes('si')).length;
+  const apSi=d.filter(r=>r._reqApro&&(r._reqApro.toLowerCase().includes('sí')||r._reqApro.toLowerCase().includes('si'))).length;
   const apNo=d.length-apSi;
   dc('cAprobacion');
   charts['cAprobacion']=new Chart(document.getElementById('cAprobacion'),{type:'doughnut',data:{labels:['Requirió aprobación','Directo'],datasets:[{data:[apSi,apNo],backgroundColor:['#f59e0b','#1F6C43'],borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:TC,font:CF,boxWidth:10,padding:7}}}}});
