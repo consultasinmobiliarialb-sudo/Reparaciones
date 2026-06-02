@@ -463,7 +463,7 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
 // ═══════════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbzlkjmA0gwWdFsSqXG84FU8aHqJHngv1FY5VNfzCC1Q3Q0MDv2q2NBPDhL9CnjyFDzv9w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzOEOBfNFSul_fK6r__4z-kc1ImGoWfM1bwR9mSvPduaY1WBl87ganPbTgDWl30hv07qw/exec";
 
 // ═══════════════════════════════════════════════════════════
 //  CATEGORÍAS
@@ -540,17 +540,29 @@ const GC='rgba(31,108,67,0.08)',TC='#8aab96',CF={size:11,family:'Source Sans 3'}
 function enrich(rows){
   return rows.map(r=>({
     ...r,
-    _rub: rubro(r['PEDIDO DE REPARACION']||r['Pedido de Reparación']||''),
+    // Campo pedido — soporta ambos sheets
+    _ped: r._ped,
+    // Rubro: usar el campo directo si existe, sino detectar del pedido
+    _rub: (r['Rubro']&&r['Rubro'].trim()&&r['Rubro'].trim()!=='nan') ? r['Rubro'].trim() : rubro(r._ped),
     _mo:  pN(r['Mano de Obra']),
     _mat: pN(r['Materiales']),
     _tot: pN(r['Mano de Obra'])+pN(r['Materiales']),
-    _rec: pD(r['Recepción Reclamo']||r['Fecha Recepción Mail']),
-    _asig:pD(r['Fecha de Asignación']||r['Fecha Carga Sistema']),
+    // Fechas — nombres distintos en cada sheet
+    _rec: pD(r['Fecha Recepción Mail']||r['Recepción Reclamo']||''),
+    _asig:pD(r['Fecha Carga Sistema']||r['Fecha de Asignación']||''),
     _ini: pD(r['Fecha Inicio Trabajo']||''),
     _fin: pD(r['Fecha Finalización']||''),
-    _prov:(r['Contratista Asignado']||r['Contratista Asignado']||'').trim()||'Sin asignar',
-    _dir: (r['DIRECCION']||r['Dirección']||'').trim(),
-    _est: r['Estado Reparacion']||r['Estado Actual']||'',
+    // Proveedor
+    _prov:(r['Contratista Asignado']||'').trim()||'Sin asignar',
+    // Dirección
+    _dir: (r['Dirección']||r['DIRECCION']||'').trim(),
+    // Estado
+    _est: r['Estado Actual']||r['Estado Reparacion']||'',
+    // Conformidad (solo en sheet nuevo)
+    _confInq: r._confInq,
+    _confProp: r._confProp,
+    // Días proceso
+    _reqApro: r['Req. Aprobación Prop.']||'',
   }));
 }
 
@@ -563,7 +575,7 @@ function initFilters(){
   all.forEach(r=>{
     const rec=pD(r['Recepción Reclamo']||r['Fecha Recepción Mail']||'');
     if(rec){ys.add(rec.getFullYear());ms.add(rec.getMonth()+1);}
-    rubs.add(rubro(r['PEDIDO DE REPARACION']||r['Pedido de Reparación']||''));
+    rubs.add(rubro(r._ped));
   });
   const yel=document.getElementById('fYear'),cy=yel.value;
   yel.innerHTML='<option value="all">Todos los años</option>';
@@ -710,9 +722,9 @@ function renderReclamos(){
   document.getElementById('sla-total').innerHTML = fmtDays(slaTotal,7,14);
 
   // Conformidad
-  const confInq=d.filter(r=>(r['Conformidad Inquilino']||'').includes('Conforme'));
-  const confInqBase=d.filter(r=>r['Conformidad Inquilino']&&r['Conformidad Inquilino']!=='Pendiente');
-  const confProp=d.filter(r=>(r['Conformidad Propietario']||'').includes('Conforme')&&!r['Conformidad Propietario'].includes('No'));
+  const confInq=d.filter(r=>(r._confInq).includes('Conforme'));
+  const confInqBase=d.filter(r=>r._confInq&&r._confInq!=='Pendiente');
+  const confProp=d.filter(r=>(r._confProp).includes('Conforme')&&!r['Conformidad Propietario'].includes('No'));
   const confPropBase=d.filter(r=>r['Conformidad Propietario']&&r['Conformidad Propietario']!=='Pendiente'&&r['Conformidad Propietario']!=='No aplica');
   document.getElementById('conf-inq').textContent=confInqBase.length?Math.round(confInq.length/confInqBase.length*100)+'%':'—';
   document.getElementById('conf-prop').textContent=confPropBase.length?Math.round(confProp.length/confPropBase.length*100)+'%':'—';
@@ -735,7 +747,7 @@ function renderReclamos(){
 
   // Conformidad por proveedor
   const cpMap={};
-  d.forEach(r=>{if(!r._prov||r._prov==='Sin asignar')return;if(!cpMap[r._prov])cpMap[r._prov]={ok:0,tot:0};const c=r['Conformidad Inquilino']||'';if(c&&c!=='Pendiente'){cpMap[r._prov].tot++;if(c.includes('Conforme')&&!c.includes('No'))cpMap[r._prov].ok++;}});
+  d.forEach(r=>{if(!r._prov||r._prov==='Sin asignar')return;if(!cpMap[r._prov])cpMap[r._prov]={ok:0,tot:0};const c=r._confInq;if(c&&c!=='Pendiente'){cpMap[r._prov].tot++;if(c.includes('Conforme')&&!c.includes('No'))cpMap[r._prov].ok++;}});
   const cpSorted=Object.entries(cpMap).filter(([,v])=>v.tot>0).map(([k,v])=>[k,Math.round(v.ok/v.tot*100),v.tot]).sort((a,b)=>b[1]-a[1]);
   document.getElementById('confProvBars').innerHTML=cpSorted.slice(0,8).map(([l,pct,n],i)=>{
     const c=pct>=80?'#1F6C43':pct>=50?'#f59e0b':'#ef4444';
@@ -743,7 +755,7 @@ function renderReclamos(){
   }).join('')||'<div class="nodata">Sin datos de conformidad aún</div>';
 
   // Aprobación propietario
-  const apSi=d.filter(r=>(r['Req. Aprobación Prop.']||r['¿Requiere aprobación propietario?']||'').toLowerCase()==='sí'||r['Requiere Aprobación']?.toLowerCase()==='si').length;
+  const apSi=d.filter(r=>(r._reqApro.toLowerCase().includes('sí')||r._reqApro.toLowerCase().includes('si')).length;
   const apNo=d.length-apSi;
   dc('cAprobacion');
   charts['cAprobacion']=new Chart(document.getElementById('cAprobacion'),{type:'doughnut',data:{labels:['Requirió aprobación','Directo'],datasets:[{data:[apSi,apNo],backgroundColor:['#f59e0b','#1F6C43'],borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:TC,font:CF,boxWidth:10,padding:7}}}}});
@@ -762,13 +774,13 @@ function filterReclamosTable(){
   let rows=reclamosFiltered.filter(r=>{
     if(est!=='all'&&r._est!==est)return false;
     if(!q)return true;
-    return(r._dir+r['PEDIDO DE REPARACION']+r['Pedido de Reparación']+(r['INQUILINO']||r['Inquilino']||'')).toLowerCase().includes(q);
+    return(r._dir+r['PEDIDO DE REPARACION']+r['Pedido de Reparación']+(r['Inquilino']||r['INQUILINO']||'')).toLowerCase().includes(q);
   });
   const el=document.getElementById('reclamosBody');
   if(!rows.length){el.innerHTML='<tr><td colspan="9" class="nodata">Sin resultados</td></tr>';return;}
   el.innerHTML=rows.slice(0,100).map(r=>{
     const estBC=r._est==='Cerrado'?'b-green':r._est?.includes('ejecución')?'b-blue':r._est?.includes('conformidad')?'b-amber':'b-gray';
-    const confBC=(r['Conformidad Inquilino']||'').includes('Conforme')&&!r['Conformidad Inquilino'].includes('No')?'b-green':r['Conformidad Inquilino']==='No conforme'?'b-red':'b-gray';
+    const confBC=(r._confInq).includes('Conforme')&&!r._confInq.includes('No')?'b-green':r._confInq==='No conforme'?'b-red':'b-gray';
     const totDays=days(r._rec,r._fin||r._asig);
     const fecha=r._rec?r._rec.toLocaleDateString('es-AR'):'—';
     const n=r['N° Reclamo']||r['N°']||'';
@@ -780,7 +792,7 @@ function filterReclamosTable(){
       <td><span class="badge ${estBC}" style="font-size:10px">${r._est||'—'}</span></td>
       <td style="font-size:11px;color:var(--text2)">${r._prov.split(' ').slice(0,2).join(' ')}</td>
       <td class="tr" style="font-weight:600;color:var(--green)">${fmtF(r._tot)}</td>
-      <td><span class="badge ${confBC}" style="font-size:10px">${r['Conformidad Inquilino']||'—'}</span></td>
+      <td><span class="badge ${confBC}" style="font-size:10px">${r._confInq||'—'}</span></td>
       <td class="tr" style="font-size:11px;${totDays&&totDays>14?'color:var(--red)':totDays&&totDays>7?'color:var(--amber)':'color:var(--green)'}">${totDays!==null?totDays+'d':'—'}</td>
     </tr>`;
   }).join('');
@@ -794,7 +806,7 @@ function buildPropData(){
   filteredAll.forEach(r=>{
     if(!r._dir)return;
     if(!propData[r._dir])propData[r._dir]={
-      prop:r['PROPIETARIO']||r['Propietario']||'—',
+      prop:r['Propietario']||r['PROPIETARIO']||'—',
       inq:r['INQUILINO']||r['Inquilino']||'—',
       rows:[],orig:r._orig
     };
@@ -873,7 +885,7 @@ function showPropDetail(dir){
   charts['propRubroChart']=new Chart(document.getElementById('propRubroChart'),{type:'doughnut',data:{labels:cs.map(([c])=>c),datasets:[{data:cs.map(([,v])=>v),backgroundColor:PAL,borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:TC,font:{size:10,family:'Source Sans 3'},boxWidth:9,padding:6}}}}});
   document.getElementById('propDetailBody').innerHTML=[...p.rows].sort((a,b)=>(b._rec||0)-(a._rec||0)).map(r=>{
     const estBC=r._est==='Cerrado'||r._est==='Terminado'?'b-green':r._est?.includes('ejecución')?'b-blue':'b-gray';
-    return`<tr><td style="font-size:11px;white-space:nowrap">${r._rec?r._rec.toLocaleDateString('es-AR'):'—'}</td><td style="font-size:11px;max-width:220px">${(r['PEDIDO DE REPARACION']||r['Pedido de Reparación']||'—').substring(0,70)}</td><td><span class="rtag">${r._rub}</span></td><td style="font-size:11px">${r._prov.split(' ').slice(0,2).join(' ')}</td><td><span class="badge ${estBC}" style="font-size:10px">${r._est||'—'}</span></td><td class="tr" style="font-weight:600;color:var(--green)">${fmtF(r._tot)}</td></tr>`;
+    return`<tr><td style="font-size:11px;white-space:nowrap">${r._rec?r._rec.toLocaleDateString('es-AR'):'—'}</td><td style="font-size:11px;max-width:220px">${(r._ped||'—').substring(0,70)}</td><td><span class="rtag">${r._rub}</span></td><td style="font-size:11px">${r._prov.split(' ').slice(0,2).join(' ')}</td><td><span class="badge ${estBC}" style="font-size:10px">${r._est||'—'}</span></td><td class="tr" style="font-weight:600;color:var(--green)">${fmtF(r._tot)}</td></tr>`;
   }).join('');
 }
 
@@ -890,7 +902,7 @@ function renderProveedores(){
     if(!pmap[r._prov])pmap[r._prov]={n:0,mo:0,mat:0,cats:new Set(),conf_ok:0,conf_tot:0,dias:[]};
     const p=pmap[r._prov];
     p.n++;p.mo+=r._mo;p.mat+=r._mat;p.cats.add(r._rub);
-    const c=r['Conformidad Inquilino']||'';
+    const c=r._confInq;
     if(c&&c!=='Pendiente'){p.conf_tot++;if(c.includes('Conforme')&&!c.includes('No'))p.conf_ok++;}
     const t=days(r._rec,r._fin);if(t!==null)p.dias.push(t);
   });
