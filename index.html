@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>Administraciones de la Patagonia · BI</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -150,6 +150,187 @@ tbody tr:last-child td{border-bottom:none;}
 footer{background:var(--green);padding:14px 36px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:32px;}
 .fl{font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;}
 .fr{font-size:11px;color:rgba(255,255,255,.4);}
+
+/* ══════════════════════════════════════════════════════
+   RESPONSIVE — Mobile First
+   ══════════════════════════════════════════════════════ */
+
+/* ── TABLET (max 1024px) ── */
+@media (max-width: 1024px) {
+  header { padding: 0 20px; height: 64px; }
+  .brand-name { font-size: 17px; }
+  nav { padding: 0 20px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  nav::-webkit-scrollbar { display: none; }
+  .tab { padding: 13px 16px; font-size: 11px; white-space: nowrap; }
+  .filter-bar { padding: 12px 20px; gap: 10px; }
+  .page { padding: 20px 20px 40px; }
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  .grid-32 { grid-template-columns: 1fr; }
+  #view-nuevo > div { grid-template-columns: 1fr; }
+}
+
+/* ── MOBILE (max 640px) ── */
+@media (max-width: 640px) {
+  /* Header */
+  header {
+    padding: 0 16px;
+    height: auto;
+    min-height: 60px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .brand-name { font-size: 14px; letter-spacing: 0; }
+  .brand-sub { font-size: 9px; }
+  .h-right { gap: 8px; }
+  .sync-pill { padding: 4px 10px; font-size: 10px; }
+  .btn-update { padding: 6px 12px; font-size: 11px; }
+
+  /* Nav — scroll horizontal */
+  nav {
+    padding: 0 0 0 4px;
+    top: 60px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 12px 14px;
+    font-size: 10px;
+    white-space: nowrap;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
+  /* Filters */
+  .filter-bar {
+    padding: 10px 16px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-label { display: none; }
+  select { font-size: 11px; padding: 6px 24px 6px 10px; }
+  .rec-count .n { font-size: 20px; }
+  .rec-count .l { font-size: 9px; }
+
+  /* Page */
+  .page { padding: 14px 14px 32px; }
+
+  /* KPIs — 2 columnas en mobile */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .kpi { padding: 14px 14px; }
+  .kpi-val { font-size: 22px; }
+  .kpi-lbl { font-size: 9px; }
+  .kpi-sub { font-size: 10px; }
+
+  /* Grids — todo en 1 columna */
+  .grid-2,
+  .grid-3,
+  .grid-32,
+  #view-nuevo > div { grid-template-columns: 1fr !important; gap: 14px; }
+
+  /* Cards */
+  .card { padding: 16px 14px; border-radius: 10px; }
+  .card-title { font-size: 10px; margin-bottom: 14px; }
+  .section-lbl { font-size: 16px; margin: 20px 0 12px; }
+
+  /* Barras */
+  .bar-lbl { min-width: 100px; max-width: 100px; font-size: 11px; }
+  .bar-val { min-width: 56px; font-size: 11px; }
+
+  /* Tablas — scroll horizontal */
+  .t-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { font-size: 12px; min-width: 520px; }
+  thead th { padding: 7px 10px; font-size: 9px; }
+  tbody td { padding: 9px 10px; }
+
+  /* Charts — reducir altura */
+  .ch-wrap[style*="height:240px"] { height: 180px !important; }
+  .ch-wrap[style*="height:220px"] { height: 170px !important; }
+  .ch-wrap[style*="height:200px"] { height: 160px !important; }
+  .ch-wrap[style*="height:260px"] { height: 190px !important; }
+
+  /* SLA boxes */
+  .sla-row { gap: 8px; }
+  .sla-box { padding: 10px 8px; min-width: 80px; }
+  .sla-val { font-size: 18px; }
+  .sla-lbl { font-size: 9px; }
+
+  /* Urgencia pills */
+  .urg-row { gap: 8px; }
+  .urg-v { font-size: 22px; }
+  .urg-l { font-size: 10px; }
+
+  /* Stat grid */
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-val { font-size: 16px; }
+  .stat-lbl { font-size: 9px; }
+
+  /* Nuevo reclamo */
+  #camposGrid { grid-template-columns: 1fr !important; }
+  #camposGrid > div[style*="span 2"] { grid-column: span 1 !important; }
+  textarea#nuevoInput { height: 100px; }
+  #chatHistory { height: 160px; }
+
+  /* Antecedentes stats */
+  #antecedentesBody > div:first-child { grid-template-columns: repeat(3, 1fr) !important; }
+
+  /* Detail panel */
+  .detail-panel .grid-2 { grid-template-columns: 1fr; }
+  .detail-header { font-size: 14px; padding: 12px 16px; }
+
+  /* Footer */
+  footer { padding: 12px 16px; }
+  .fl { font-size: 10px; }
+  .fr { display: none; }
+
+  /* Prop search */
+  .search-input { width: 100%; }
+
+  /* Badge */
+  .badge { font-size: 10px; padding: 2px 7px; }
+  .rtag { font-size: 9px; padding: 1px 6px; }
+}
+
+/* ── MOBILE XS (max 380px) ── */
+@media (max-width: 380px) {
+  .brand-name { font-size: 12px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-val { font-size: 20px; }
+  .tab { padding: 11px 12px; font-size: 9px; }
+}
+
+/* ── Touch improvements ── */
+@media (hover: none) and (pointer: coarse) {
+  .tab, button, select { min-height: 44px; }
+  .prop-row td, tbody tr td { padding: 13px 10px; }
+  .finput { min-height: 44px; }
+  .bar-row { margin-bottom: 14px; }
+}
+
+/* ── Nuevo grid mobile ── */
+@media (max-width: 1024px) {
+  .nuevo-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── Print ── */
+@media print {
+  header, nav, .filter-bar, footer, #btnGuardar, #btnInterpretar { display: none !important; }
+  .page { padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+}
+
 </style>
 </head>
 <body>
@@ -179,6 +360,7 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
   <button class="tab" onclick="switchTab('props')">🏠 Propiedades</button>
   <button class="tab" onclick="switchTab('provs')">👷 Proveedores</button>
   <button class="tab" onclick="switchTab('hist')">📜 Histórico</button>
+  <button class="tab" onclick="switchTab('nuevo')" style="color:var(--green);font-weight:700;border-left:2px solid var(--border)">➕ Nuevo Reclamo</button>
 </nav>
 
 <!-- FILTERS -->
@@ -454,6 +636,164 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
 
 </div><!-- /page -->
 
+
+<!-- ══ TAB: NUEVO RECLAMO ══ -->
+<div id="view-nuevo" class="view">
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:4px" class="nuevo-grid">
+
+    <!-- PANEL IZQUIERDO: Chat de carga -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="card-title">✍️ Describí el reclamo</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6">
+          Escribí el reclamo en lenguaje natural. Claude va a interpretar los datos y completar los campos automáticamente.
+        </p>
+        <textarea id="nuevoInput" placeholder="Ej: Inquilino Juan Pérez de Salta 33 reporta pérdida de agua en cocina, es urgente. Contratista Segundo Fuentes." 
+          style="width:100%;height:130px;padding:12px;border:1.5px solid var(--border-g);border-radius:8px;font-family:var(--font-body);font-size:13px;background:var(--green-bg);color:var(--text);outline:none;resize:vertical;line-height:1.5"
+          onkeydown="if(event.key==='Enter'&&event.ctrlKey)interpretarReclamo()"></textarea>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button onclick="interpretarReclamo()" id="btnInterpretar"
+            style="flex:1;background:var(--green);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-family:var(--font-body);font-weight:700;font-size:13px;cursor:pointer;transition:background .2s">
+            🤖 Interpretar con IA
+          </button>
+          <button onclick="limpiarNuevo()"
+            style="background:var(--bg);color:var(--text2);border:1.5px solid var(--border);padding:10px 14px;border-radius:8px;font-family:var(--font-body);font-size:13px;cursor:pointer">
+            Limpiar
+          </button>
+        </div>
+        <div id="iaStatus" style="margin-top:10px;font-size:12px;color:var(--text3);min-height:18px;display:flex;align-items:center;gap:8px"></div>
+      </div>
+
+      <!-- Formulario de campos -->
+      <div class="card">
+        <div class="card-title">📋 Campos del reclamo</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="camposGrid">
+
+          <div style="grid-column:span 2">
+            <label class="flabel">Dirección *</label>
+            <input id="f-dir" type="text" class="finput" placeholder="Ej: Salta 33 Piso 1 B" oninput="buscarAntecedentes()">
+          </div>
+          <div>
+            <label class="flabel">Inquilino</label>
+            <input id="f-inq" type="text" class="finput" placeholder="Nombre completo">
+          </div>
+          <div>
+            <label class="flabel">Propietario <span style="color:var(--green);font-size:10px">← del historial</span></label>
+            <input id="f-prop" type="text" class="finput" placeholder="Se completa automático">
+          </div>
+          <div>
+            <label class="flabel">Teléfono inquilino</label>
+            <input id="f-tel" type="text" class="finput" placeholder="299...">
+          </div>
+          <div>
+            <label class="flabel">Mail inquilino</label>
+            <input id="f-mail" type="text" class="finput" placeholder="mail@...">
+          </div>
+          <div style="grid-column:span 2">
+            <label class="flabel">Pedido de Reparación *</label>
+            <textarea id="f-ped" class="finput" style="height:70px;resize:vertical" placeholder="Descripción del problema"></textarea>
+          </div>
+          <div>
+            <label class="flabel">Rubro *</label>
+            <select id="f-rub" class="finput">
+              <option value="">-- Seleccionar --</option>
+              <option>Plomería</option>
+              <option>Caldera / Calefacción</option>
+              <option>Electricidad</option>
+              <option>Humedad / Filtraciones</option>
+              <option>Albañilería</option>
+              <option>Carpintería</option>
+              <option>Herrería</option>
+              <option>Pintura</option>
+              <option>Gas / Hornallas</option>
+              <option>Limpieza / Destape</option>
+              <option>Otros / Mantenimiento</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel">Urgencia *</label>
+            <select id="f-urg" class="finput">
+              <option value="">-- Seleccionar --</option>
+              <option value="1-Alta">🔴 1-Alta</option>
+              <option value="2-Media">🟡 2-Media</option>
+              <option value="3-Baja">🟢 3-Baja</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel">Contratista sugerido</label>
+            <input id="f-prov" type="text" class="finput" placeholder="Nombre del proveedor">
+          </div>
+          <div>
+            <label class="flabel">Estado inicial</label>
+            <select id="f-est" class="finput">
+              <option value="Recibido">Recibido</option>
+              <option value="En evaluación">En evaluación</option>
+              <option value="Proveedor asignado">Proveedor asignado</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel">Fecha recepción</label>
+            <input id="f-fecha" type="date" class="finput">
+          </div>
+          <div>
+            <label class="flabel">Observaciones</label>
+            <input id="f-obs" type="text" class="finput" placeholder="Notas adicionales">
+          </div>
+
+        </div>
+
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button onclick="guardarEnSheet()" id="btnGuardar"
+            style="flex:1;background:var(--green);color:#fff;border:none;padding:12px;border-radius:8px;font-family:var(--font-body);font-weight:700;font-size:14px;cursor:pointer;transition:background .2s;box-shadow:0 2px 8px rgba(31,108,67,.3)">
+            💾 Guardar en Sheet
+          </button>
+        </div>
+        <div id="saveStatus" style="margin-top:10px;font-size:12px;min-height:18px;text-align:center"></div>
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO: Antecedentes -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card" id="antecedentesCard">
+        <div class="card-title">🏠 Antecedentes de la Propiedad</div>
+        <div id="antecedentesBody">
+          <div style="text-align:center;padding:40px 20px;color:var(--text3)">
+            <div style="font-size:32px;margin-bottom:12px">🔍</div>
+            <p style="font-size:13px">Ingresá una dirección para ver el historial de reparaciones</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat IA -->
+      <div class="card">
+        <div class="card-title">💬 Chat de consulta</div>
+        <div id="chatHistory" style="height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg);margin-bottom:10px;display:flex;flex-direction:column;gap:8px">
+          <div style="background:var(--green-xl);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);max-width:85%">
+            Hola! Puedo ayudarte a buscar información sobre propiedades, proveedores o tipos de reparaciones. También puedo interpretar reclamos que me describas.
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="chatInput" type="text" class="finput" style="flex:1" placeholder="Ej: ¿Cuánto se gastó en Salta 33?" onkeydown="if(event.key==='Enter')enviarChat()">
+          <button onclick="enviarChat()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:16px">↑</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.flabel{display:block;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.finput{width:100%;padding:9px 12px;border:1.5px solid var(--border-g);border-radius:8px;font-family:var(--font-body);font-size:13px;background:var(--green-bg);color:var(--text);outline:none;transition:border-color .2s;}
+.finput:focus{border-color:var(--green);}
+.msg-user{background:var(--green);color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;max-width:85%;align-self:flex-end;margin-left:auto;}
+.msg-ai{background:var(--green-xl);color:var(--text);border-radius:8px;padding:8px 12px;font-size:12px;max-width:90%;line-height:1.5;}
+.msg-loading{color:var(--text3);font-size:12px;font-style:italic;padding:4px 0;}
+</style>
+
 <footer>
   <div class="fl">Administraciones de la Patagonia · Business Intelligence · Neuquén Patagonia</div>
   <div class="fr" id="ftrSync">—</div>
@@ -463,7 +803,7 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
 // ═══════════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbzOEOBfNFSul_fK6r__4z-kc1ImGoWfM1bwR9mSvPduaY1WBl87ganPbTgDWl30hv07qw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzAjD-J0sEqG3VZ49KCzexmMCDqpfqNtmZ1izlAPVNcp1YhSzoYGFg1A720KjU90iUVUg/exec";
 
 // ═══════════════════════════════════════════════════════════
 //  CATEGORÍAS
@@ -1035,6 +1375,333 @@ function switchTab(t){
   else if(t==='props'){buildPropData();renderPropKpis();renderPropBars();renderPropTable();}
   else if(t==='provs')renderProveedores();
   else if(t==='hist')renderHistorico();
+  else if(t==='nuevo')initNuevo();
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  NUEVO RECLAMO — IA + ANTECEDENTES + GUARDAR
+// ═══════════════════════════════════════════════════════════
+
+// Set today's date on tab open
+function initNuevo(){
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-fecha').value = today;
+}
+
+// ── INTERPRETAR CON IA ────────────────────────────────────
+async function interpretarReclamo(){
+  const texto = document.getElementById('nuevoInput').value.trim();
+  if(!texto){ setIAStatus('⚠ Escribí algo primero','var(--amber)'); return; }
+
+  const btn = document.getElementById('btnInterpretar');
+  btn.textContent = '⏳ Interpretando…';
+  btn.disabled = true;
+  setIAStatus('Analizando el texto…','var(--text3)');
+
+  // Build context with known addresses and providers
+  const dirs = [...new Set([...dataActual,...dataHistorico].map(r=>r._dir).filter(Boolean))].slice(0,50).join(', ');
+  const provs = [...new Set([...dataActual,...dataHistorico].map(r=>r._prov).filter(v=>v&&v!=='Sin asignar'))].slice(0,30).join(', ');
+
+  const prompt = `Sos un asistente de administración inmobiliaria en Neuquén, Argentina.
+Extraé los datos del siguiente reclamo y devolvé SOLO un JSON válido sin texto adicional.
+
+Direcciones conocidas del sistema (para ayudarte a matchear): ${dirs}
+Proveedores conocidos: ${provs}
+
+Reclamo: "${texto}"
+
+Devolvé exactamente este JSON:
+{
+  "direccion": "dirección exacta o aproximada mencionada",
+  "inquilino": "nombre del inquilino si se menciona",
+  "telefono": "teléfono si se menciona",
+  "mail": "email si se menciona",
+  "pedido": "descripción clara del problema",
+  "rubro": "uno de: Plomería | Caldera / Calefacción | Electricidad | Humedad / Filtraciones | Albañilería | Carpintería | Herrería | Pintura | Gas / Hornallas | Limpieza / Destape | Otros / Mantenimiento",
+  "urgencia": "1-Alta | 2-Media | 3-Baja según la descripción",
+  "proveedor": "proveedor sugerido si se menciona o si el rubro tiene uno habitual",
+  "observaciones": "cualquier dato extra relevante"
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages:[{role:'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if(!jsonMatch) throw new Error('No se pudo parsear la respuesta');
+    const campos = JSON.parse(jsonMatch[0]);
+
+    // Fill fields
+    if(campos.direccion) { document.getElementById('f-dir').value = campos.direccion; buscarAntecedentes(); }
+    if(campos.inquilino)  document.getElementById('f-inq').value  = campos.inquilino;
+    if(campos.telefono)   document.getElementById('f-tel').value  = campos.telefono;
+    if(campos.mail)       document.getElementById('f-mail').value = campos.mail;
+    if(campos.pedido)     document.getElementById('f-ped').value  = campos.pedido;
+    if(campos.rubro)      document.getElementById('f-rub').value  = campos.rubro;
+    if(campos.urgencia)   document.getElementById('f-urg').value  = campos.urgencia;
+    if(campos.proveedor)  document.getElementById('f-prov').value = campos.proveedor;
+    if(campos.observaciones) document.getElementById('f-obs').value = campos.observaciones;
+
+    setIAStatus('✅ Campos completados — revisá y confirmá','var(--green)');
+  } catch(e) {
+    setIAStatus('⚠ Error: '+e.message,'var(--red)');
+  }
+  btn.textContent = '🤖 Interpretar con IA';
+  btn.disabled = false;
+}
+
+function setIAStatus(msg, color){
+  const el = document.getElementById('iaStatus');
+  el.textContent = msg;
+  el.style.color = color;
+}
+
+// ── ANTECEDENTES DE PROPIEDAD ─────────────────────────────
+function buscarAntecedentes(){
+  const dir = document.getElementById('f-dir').value.trim().toLowerCase();
+  if(dir.length < 4){ 
+    document.getElementById('antecedentesBody').innerHTML = '<div style="text-align:center;padding:32px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🔍</div><p style="font-size:13px">Ingresá una dirección para ver el historial</p></div>';
+    return;
+  }
+
+  // Buscar en todos los datos (actual + histórico)
+  const all = enrich([...dataActual,...dataHistorico]);
+  const matches = all.filter(r => r._dir && r._dir.toLowerCase().includes(dir));
+
+  if(!matches.length){
+    document.getElementById('antecedentesBody').innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Sin antecedentes para esta dirección</div>';
+    document.getElementById('f-prop').value = '';
+    return;
+  }
+
+  // Autocompletar propietario (el más reciente)
+  const propietario = matches.filter(r=>r['Propietario']||r['PROPIETARIO']).slice(-1)[0];
+  if(propietario) document.getElementById('f-prop').value = propietario['Propietario']||propietario['PROPIETARIO']||'';
+
+  // Stats
+  const gastoTotal = matches.reduce((s,r)=>s+r._tot,0);
+  const rubros = [...new Set(matches.map(r=>r._rub))];
+  const provs  = [...new Set(matches.map(r=>r._prov).filter(v=>v&&v!=='Sin asignar'))];
+  const last   = matches.filter(r=>r._rec).sort((a,b)=>b._rec-a._rec)[0];
+
+  // Render
+  const statsHtml = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div style="background:var(--green-bg);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border-g)">
+        <div style="font-family:var(--font-head);font-size:24px;color:var(--green);font-weight:700">${matches.length}</div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Reclamos</div>
+      </div>
+      <div style="background:var(--gold-l);border-radius:8px;padding:12px;text-align:center;border:1px solid rgba(212,175,55,.3)">
+        <div style="font-family:var(--font-head);font-size:24px;color:#92400e;font-weight:700">${fmt(gastoTotal)}</div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Invertido</div>
+      </div>
+      <div style="background:var(--green-bg);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border-g)">
+        <div style="font-family:var(--font-head);font-size:14px;color:var(--green);font-weight:700;line-height:1.2">${last?last._rec.toLocaleDateString('es-AR'):'—'}</div>
+        <div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Último</div>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text2)">
+      <strong>Rubros:</strong> ${rubros.map(r=>`<span class="rtag">${r}</span>`).join(' ')}
+    </div>
+    <div style="margin-bottom:16px;font-size:12px;color:var(--text2)">
+      <strong>Proveedores:</strong> ${provs.slice(0,4).join(', ')||'—'}
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Historial completo</div>
+    <div style="max-height:280px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="border-bottom:2px solid var(--border)">
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Fecha</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Reclamo</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Rubro</th>
+          <th style="padding:6px 8px;text-align:right;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Total</th>
+          <th style="padding:6px 8px;text-align:left;font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase">Conf.</th>
+        </tr></thead>
+        <tbody>
+          ${[...matches].sort((a,b)=>(b._rec||0)-(a._rec||0)).map(r=>{
+            const conf = r._confInq||r['Conformidad Inquilino']||'';
+            const confBC = conf.includes('Conforme')&&!conf.includes('No')?'#dcfce7;color:#166534':conf==='No conforme'?'#fee2e2;color:#b91c1c':'#f1f5f9;color:#475569';
+            const estBC = r._est==='Cerrado'||r._est==='Terminado'?'#dcfce7;color:#166534':'#f1f5f9;color:#475569';
+            return `<tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:7px 8px;white-space:nowrap;color:var(--text3)">${r._rec?r._rec.toLocaleDateString('es-AR'):'—'}</td>
+              <td style="padding:7px 8px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r._ped}">${(r._ped||'—').substring(0,45)}</td>
+              <td style="padding:7px 8px"><span class="rtag">${r._rub}</span></td>
+              <td style="padding:7px 8px;text-align:right;font-weight:600;color:var(--green)">${fmtF(r._tot)}</td>
+              <td style="padding:7px 8px"><span style="display:inline-block;padding:1px 7px;border-radius:100px;font-size:10px;font-weight:700;background:${confBC}">${conf||r._est||'—'}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('antecedentesBody').innerHTML = statsHtml;
+}
+
+// ── CHAT CONSULTA ─────────────────────────────────────────
+async function enviarChat(){
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  addChatMsg(msg, 'user');
+  const loadId = addChatMsg('Pensando…', 'loading');
+
+  // Build context summary
+  const all = enrich([...dataActual,...dataHistorico]);
+  const totalRec = all.length;
+  const totalGasto = all.reduce((s,r)=>s+r._tot,0);
+  const topProv = Object.entries(all.reduce((m,r)=>{m[r._prov]=(m[r._prov]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,n])=>`${p}(${n})`).join(', ');
+
+  // Dir specific context
+  const dirQuery = document.getElementById('f-dir').value.trim().toLowerCase();
+  let dirContext = '';
+  if(dirQuery.length>3){
+    const dirMatches = all.filter(r=>r._dir&&r._dir.toLowerCase().includes(dirQuery));
+    if(dirMatches.length) dirContext = `Sobre ${dirQuery}: ${dirMatches.length} reclamos, gasto total ${fmtF(dirMatches.reduce((s,r)=>s+r._tot,0))}, rubros: ${[...new Set(dirMatches.map(r=>r._rub))].join(', ')}.`;
+  }
+
+  const prompt = `Sos un asistente de administración inmobiliaria de Administraciones de la Patagonia en Neuquén.
+  
+Contexto del sistema:
+- Total reclamos: ${totalRec}
+- Gasto total histórico: ${fmtF(totalGasto)}
+- Top proveedores: ${topProv}
+${dirContext}
+
+Pregunta del administrador: "${msg}"
+
+Respondé de forma concisa y útil en español. Si no tenés datos suficientes decilo claramente.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Sin respuesta';
+    removeChatMsg(loadId);
+    addChatMsg(reply, 'ai');
+  } catch(e) {
+    removeChatMsg(loadId);
+    addChatMsg('Error al conectar con la IA: '+e.message, 'ai');
+  }
+}
+
+let chatMsgId = 0;
+function addChatMsg(text, type){
+  const id = 'cmsg-'+(++chatMsgId);
+  const cls = type==='user'?'msg-user':type==='loading'?'msg-loading':'msg-ai';
+  const el = document.createElement('div');
+  el.id = id; el.className = cls;
+  el.textContent = text;
+  const hist = document.getElementById('chatHistory');
+  hist.appendChild(el);
+  hist.scrollTop = hist.scrollHeight;
+  return id;
+}
+function removeChatMsg(id){ const el=document.getElementById(id); if(el) el.remove(); }
+
+// ── GUARDAR EN SHEET ──────────────────────────────────────
+async function guardarEnSheet(){
+  const dir   = document.getElementById('f-dir').value.trim();
+  const ped   = document.getElementById('f-ped').value.trim();
+  const rub   = document.getElementById('f-rub').value;
+  const urg   = document.getElementById('f-urg').value;
+
+  if(!dir||!ped||!rub||!urg){
+    setSaveStatus('⚠ Completá los campos obligatorios: Dirección, Pedido, Rubro y Urgencia','var(--red)');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.textContent = '⏳ Guardando…'; btn.disabled = true;
+  setSaveStatus('Enviando al Sheet…','var(--text3)');
+
+  const today = new Date().toISOString().split('T')[0];
+  const payload = {
+    action: 'nuevo_reclamo',
+    data: {
+      'Fecha Recepción Mail': document.getElementById('f-fecha').value || today,
+      'Urgencia':             urg,
+      'Dirección':            dir,
+      'Inquilino':            document.getElementById('f-inq').value,
+      'Teléfono Inquilino':   document.getElementById('f-tel').value,
+      'Mail Inquilino':       document.getElementById('f-mail').value,
+      'Propietario':          document.getElementById('f-prop').value,
+      'Pedido de Reparación': ped,
+      'Rubro':                rub,
+      'Estado Actual':        document.getElementById('f-est').value || 'Recibido',
+      'Fecha Carga Sistema':  today,
+      'Contratista Asignado': document.getElementById('f-prov').value,
+      'Observaciones':        document.getElementById('f-obs').value,
+    }
+  };
+
+  try {
+    // Use no-cors mode — Apps Script will receive and process
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+
+    setSaveStatus('✅ ¡Reclamo guardado correctamente en el Sheet!','var(--green)');
+    setTimeout(()=>{ limpiarNuevo(); loadData(); }, 2000);
+  } catch(e) {
+    // fetch may throw due to CORS on POST — try JSONP fallback
+    guardarJSONP(payload);
+  }
+  btn.textContent = '💾 Guardar en Sheet'; btn.disabled = false;
+}
+
+function guardarJSONP(payload){
+  const old = document.getElementById('_jsonp_post'); if(old) old.remove();
+  const encoded = encodeURIComponent(JSON.stringify(payload.data));
+  window._postCb = function(res){
+    if(res.ok){
+      setSaveStatus('✅ ¡Reclamo guardado correctamente!','var(--green)');
+      setTimeout(()=>{ limpiarNuevo(); loadData(); }, 2000);
+    } else {
+      setSaveStatus('⚠ Error: '+(res.error||'desconocido'),'var(--red)');
+    }
+  };
+  const s = document.createElement('script');
+  s.id = '_jsonp_post';
+  s.src = API_URL + '?callback=_postCb&action=nuevo_reclamo&data='+encoded+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+function setSaveStatus(msg,color){
+  const el=document.getElementById('saveStatus');
+  el.textContent=msg; el.style.color=color;
+}
+
+function limpiarNuevo(){
+  ['f-dir','f-inq','f-prop','f-tel','f-mail','f-ped','f-prov','f-obs'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('f-rub').value='';
+  document.getElementById('f-urg').value='';
+  document.getElementById('f-est').value='Recibido';
+  document.getElementById('nuevoInput').value='';
+  document.getElementById('f-fecha').value=new Date().toISOString().split('T')[0];
+  setSaveStatus('','');
+  setIAStatus('','');
+  document.getElementById('antecedentesBody').innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🔍</div><p style="font-size:13px">Ingresá una dirección para ver el historial de reparaciones</p></div>';
 }
 
 // INIT
