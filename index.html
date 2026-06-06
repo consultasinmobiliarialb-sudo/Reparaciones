@@ -319,6 +319,18 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
   .bar-row { margin-bottom: 14px; }
 }
 
+/* ── Gestionar edit grid mobile ── */
+@media (max-width: 900px) {
+  #gEditGrid { grid-template-columns: 1fr 1fr !important; }
+  #gEditGrid > div[style*="span 3"] { grid-column: span 2 !important; }
+  #gEditGrid > div[style*="span 2"] { grid-column: span 2 !important; }
+}
+@media (max-width: 640px) {
+  #gEditGrid { grid-template-columns: 1fr !important; }
+  #gEditGrid > div[style*="span 3"],
+  #gEditGrid > div[style*="span 2"] { grid-column: span 1 !important; }
+}
+
 /* ── Nuevo grid mobile ── */
 @media (max-width: 1024px) {
   .nuevo-grid { grid-template-columns: 1fr !important; }
@@ -361,6 +373,7 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
   <button class="tab" onclick="switchTab('provs')">👷 Proveedores</button>
   <button class="tab" onclick="switchTab('hist')">📜 Histórico</button>
   <button class="tab" onclick="switchTab('nuevo')" style="color:var(--green);font-weight:700;border-left:2px solid var(--border)">➕ Nuevo Reclamo</button>
+  <button class="tab" onclick="switchTab('gestionar')" style="color:#7c3aed;font-weight:700">📝 Gestionar</button>
 </nav>
 
 <!-- FILTERS -->
@@ -794,6 +807,234 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
 .msg-loading{color:var(--text3);font-size:12px;font-style:italic;padding:4px 0;}
 </style>
 
+
+<!-- ══ TAB: GESTIONAR RECLAMOS ══ -->
+<div id="view-gestionar" class="view">
+
+  <!-- Buscador y filtros rápidos -->
+  <div class="card" style="margin-bottom:20px">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="gSearch" class="search-input" style="flex:1;min-width:200px"
+        placeholder="🔍 Buscar por N°, dirección, inquilino, proveedor…"
+        oninput="renderGestionar()">
+      <div class="sw"><select id="gEstado" onchange="renderGestionar()">
+        <option value="all">Todos los estados</option>
+        <option value="Recibido">Recibido</option>
+        <option value="En evaluación">En evaluación</option>
+        <option value="Proveedor asignado">Proveedor asignado</option>
+        <option value="Visita realizada">Visita realizada</option>
+        <option value="Presupuesto recibido">Presupuesto recibido</option>
+        <option value="Esperando aprobación propietario">Esp. aprobación</option>
+        <option value="Aprobado — en ejecución">En ejecución</option>
+        <option value="Finalizado — pendiente conformidad">Pend. conformidad</option>
+        <option value="Cerrado">Cerrado</option>
+      </select></div>
+      <div class="sw"><select id="gRubro" onchange="renderGestionar()">
+        <option value="all">Todos los rubros</option>
+        <option>Plomería</option>
+        <option>Caldera / Calefacción</option>
+        <option>Electricidad</option>
+        <option>Humedad / Filtraciones</option>
+        <option>Albañilería</option>
+        <option>Carpintería</option>
+        <option>Herrería</option>
+        <option>Pintura</option>
+        <option>Gas / Hornallas</option>
+        <option>Otros / Mantenimiento</option>
+      </select></div>
+      <div class="sw"><select id="gOrigen" onchange="renderGestionar()">
+        <option value="actual">Reclamos actuales</option>
+        <option value="all">Todos (+ histórico)</option>
+      </select></div>
+      <div style="font-size:12px;color:var(--text3)" id="gCount">— registros</div>
+    </div>
+  </div>
+
+  <!-- Tabla de reclamos -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Lista de Reclamos — Click en cualquier fila para editar</div>
+    <div class="t-wrap">
+      <table id="gTable">
+        <thead><tr>
+          <th>N°</th>
+          <th>Fecha</th>
+          <th>Dirección</th>
+          <th>Reclamo</th>
+          <th>Rubro</th>
+          <th>Estado</th>
+          <th>Proveedor</th>
+          <th class="tr">Total</th>
+          <th>Conf.</th>
+          <th style="text-align:center">Días</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="gBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--text3);text-align:center" id="gMore"></div>
+  </div>
+
+  <!-- Panel de edición -->
+  <div id="gEditPanel" style="display:none">
+    <div class="card" style="border:2px solid var(--green)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="card-title" style="margin-bottom:4px" id="gEditTitle">Editando reclamo</div>
+          <div style="font-size:11px;color:var(--text3)" id="gEditSub">—</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button onclick="guardarEdicion()" id="btnGuardarEdit"
+            style="background:var(--green);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:var(--font-body);font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(31,108,67,.3)">
+            💾 Guardar cambios
+          </button>
+          <button onclick="cerrarEdicion()"
+            style="background:var(--bg);color:var(--text2);border:1.5px solid var(--border);padding:10px 16px;border-radius:8px;font-family:var(--font-body);font-size:13px;cursor:pointer">
+            ✕ Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- Campos de edición en grilla -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px" id="gEditGrid">
+
+        <!-- Bloque: Identificación -->
+        <div style="grid-column:span 3;border-bottom:1px solid var(--border);padding-bottom:4px;margin-bottom:2px">
+          <span style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em">📋 Estado del proceso</span>
+        </div>
+        <div>
+          <label class="flabel">Estado actual *</label>
+          <select id="e-est" class="finput">
+            <option value="Recibido">Recibido</option>
+            <option value="En evaluación">En evaluación</option>
+            <option value="Proveedor asignado">Proveedor asignado</option>
+            <option value="Visita realizada">Visita realizada</option>
+            <option value="Presupuesto recibido">Presupuesto recibido</option>
+            <option value="Esperando aprobación propietario">Esperando aprobación propietario</option>
+            <option value="Aprobado — en ejecución">Aprobado — en ejecución</option>
+            <option value="Finalizado — pendiente conformidad">Finalizado — pendiente conformidad</option>
+            <option value="Cerrado">Cerrado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div>
+          <label class="flabel">Urgencia</label>
+          <select id="e-urg" class="finput">
+            <option value="1-Alta">🔴 1-Alta</option>
+            <option value="2-Media">🟡 2-Media</option>
+            <option value="3-Baja">🟢 3-Baja</option>
+          </select>
+        </div>
+        <div>
+          <label class="flabel">Fecha visita / diagnóstico</label>
+          <input id="e-visita" type="date" class="finput">
+        </div>
+        <div>
+          <label class="flabel">Fecha inicio trabajo</label>
+          <input id="e-ini" type="date" class="finput">
+        </div>
+        <div>
+          <label class="flabel">Fecha finalización</label>
+          <input id="e-fin" type="date" class="finput">
+        </div>
+        <div>
+          <label class="flabel">Req. aprobación propietario</label>
+          <select id="e-req" class="finput">
+            <option value="">—</option>
+            <option value="Sí">Sí</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+
+        <!-- Bloque: Proveedor y costos -->
+        <div style="grid-column:span 3;border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:8px;margin-bottom:2px">
+          <span style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em">💰 Proveedor y costos</span>
+        </div>
+        <div>
+          <label class="flabel">Contratista asignado</label>
+          <input id="e-prov" type="text" class="finput" placeholder="Nombre del proveedor">
+        </div>
+        <div>
+          <label class="flabel">Presupuesto ($)</label>
+          <input id="e-presup" type="number" class="finput" placeholder="0">
+        </div>
+        <div>
+          <label class="flabel">Mano de obra ($)</label>
+          <input id="e-mo" type="number" class="finput" placeholder="0">
+        </div>
+        <div>
+          <label class="flabel">Materiales ($)</label>
+          <input id="e-mat" type="number" class="finput" placeholder="0">
+        </div>
+        <div>
+          <label class="flabel">Total pagado ($)</label>
+          <input id="e-pago" type="number" class="finput" placeholder="0">
+        </div>
+        <div>
+          <label class="flabel">Precio acorde al mercado</label>
+          <select id="e-precio" class="finput">
+            <option value="">—</option>
+            <option value="Acorde">Acorde</option>
+            <option value="Económico">Económico</option>
+            <option value="Caro">Caro</option>
+            <option value="Muy caro">Muy caro</option>
+            <option value="A evaluar">A evaluar</option>
+          </select>
+        </div>
+
+        <!-- Bloque: Conformidad -->
+        <div style="grid-column:span 3;border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:8px;margin-bottom:2px">
+          <span style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.08em">✅ Conformidad</span>
+        </div>
+        <div>
+          <label class="flabel">Conformidad inquilino</label>
+          <select id="e-confinq" class="finput">
+            <option value="">—</option>
+            <option value="Conforme">✅ Conforme</option>
+            <option value="No conforme">❌ No conforme</option>
+            <option value="Pendiente">⏳ Pendiente</option>
+          </select>
+        </div>
+        <div>
+          <label class="flabel">Fecha conf. inquilino</label>
+          <input id="e-fechainq" type="date" class="finput">
+        </div>
+        <div>
+          <label class="flabel">Conformidad propietario</label>
+          <select id="e-confprop" class="finput">
+            <option value="">—</option>
+            <option value="Conforme">✅ Conforme</option>
+            <option value="No conforme">❌ No conforme</option>
+            <option value="Pendiente">⏳ Pendiente</option>
+            <option value="No aplica">No aplica</option>
+          </select>
+        </div>
+
+        <!-- Bloque: Datos del reclamo (readonly) -->
+        <div style="grid-column:span 3;border-bottom:1px solid var(--border);padding-bottom:4px;margin-top:8px;margin-bottom:2px">
+          <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">📄 Datos del reclamo (referencia)</span>
+        </div>
+        <div style="grid-column:span 2">
+          <label class="flabel">Tareas a realizar</label>
+          <textarea id="e-tareas" class="finput" style="height:60px;resize:vertical" placeholder="Descripción de tareas"></textarea>
+        </div>
+        <div>
+          <label class="flabel">Observaciones</label>
+          <textarea id="e-obs" class="finput" style="height:60px;resize:vertical" placeholder="Notas adicionales"></textarea>
+        </div>
+
+      </div>
+
+      <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button onclick="guardarEdicion()" id="btnGuardarEdit2"
+          style="background:var(--green);color:#fff;border:none;padding:11px 28px;border-radius:8px;font-family:var(--font-body);font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(31,108,67,.3)">
+          💾 Guardar cambios en Sheet
+        </button>
+        <div id="gEditStatus" style="font-size:12px;min-height:18px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /view-gestionar -->
 <footer>
   <div class="fl">Administraciones de la Patagonia · Business Intelligence · Neuquén Patagonia</div>
   <div class="fr" id="ftrSync">—</div>
@@ -803,7 +1044,7 @@ footer{background:var(--green);padding:14px 36px;display:flex;align-items:center
 // ═══════════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbzAjD-J0sEqG3VZ49KCzexmMCDqpfqNtmZ1izlAPVNcp1YhSzoYGFg1A720KjU90iUVUg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzCkBvUpadeCL-jvTwvnGn37wRVl843JtFODbz_QQuVvMVV5Hp2l8LwSc32aSgFG9d02Q/exec";
 
 // ═══════════════════════════════════════════════════════════
 //  CATEGORÍAS
@@ -1376,6 +1617,7 @@ function switchTab(t){
   else if(t==='provs')renderProveedores();
   else if(t==='hist')renderHistorico();
   else if(t==='nuevo')initNuevo();
+  else if(t==='gestionar'){renderGestionar();}
 }
 
 
@@ -1702,6 +1944,259 @@ function limpiarNuevo(){
   setSaveStatus('','');
   setIAStatus('','');
   document.getElementById('antecedentesBody').innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🔍</div><p style="font-size:13px">Ingresá una dirección para ver el historial de reparaciones</p></div>';
+}
+
+
+// ═══════════════════════════════════════════════════════════
+//  GESTIONAR RECLAMOS — Lista + Edición inline
+// ═══════════════════════════════════════════════════════════
+
+let gFiltered = [];    // filas filtradas
+let gRowIndex = null;  // índice de fila siendo editada
+let gShowAll  = false; // mostrar todos o solo primeros 50
+
+function renderGestionar(){
+  const q      = (document.getElementById('gSearch')||{value:''}).value.toLowerCase();
+  const est    = (document.getElementById('gEstado')||{value:'all'}).value;
+  const rub    = (document.getElementById('gRubro')||{value:'all'}).value;
+  const origen = (document.getElementById('gOrigen')||{value:'actual'}).value;
+
+  // Source
+  let base = origen==='actual' ? filteredActual : filteredAll;
+
+  gFiltered = base.filter(r=>{
+    if(est!=='all' && r._est!==est) return false;
+    if(rub!=='all' && r._rub!==rub) return false;
+    if(!q) return true;
+    const hay = (r['N° Reclamo']||'')+(r._dir||'')+(r._ped||'')+(r._prov||'')+(r['Inquilino']||r['INQUILINO']||'');
+    return hay.toLowerCase().includes(q);
+  });
+
+  // Sort: más recientes primero, luego por N°
+  gFiltered.sort((a,b)=>{
+    if(b._rec && a._rec) return b._rec - a._rec;
+    return (parseInt(b['N° Reclamo'])||0) - (parseInt(a['N° Reclamo'])||0);
+  });
+
+  document.getElementById('gCount').textContent = gFiltered.length + ' registros';
+  renderGBody();
+}
+
+function renderGBody(){
+  const el = document.getElementById('gBody');
+  const rows = gShowAll ? gFiltered : gFiltered.slice(0,50);
+
+  if(!rows.length){
+    el.innerHTML = '<tr><td colspan="11" class="nodata">Sin registros que coincidan con los filtros</td></tr>';
+    document.getElementById('gMore').textContent = '';
+    return;
+  }
+
+  el.innerHTML = rows.map((r, idx)=>{
+    const realIdx = gFiltered.indexOf(r);
+    const n   = r['N° Reclamo'] || '—';
+    const est = r._est || '—';
+    const estColor = est==='Cerrado'||est==='Terminado' ? 'b-green'
+                   : est.includes('ejecución')          ? 'b-blue'
+                   : est.includes('conformidad')        ? 'b-amber'
+                   : est==='Cancelado'                  ? 'b-red'
+                   : 'b-gray';
+    const conf    = r._confInq || '';
+    const confBC  = conf.includes('Conforme')&&!conf.includes('No') ? 'b-green'
+                  : conf==='No conforme' ? 'b-red' : 'b-gray';
+    const diasTotal = r._rec && r._fin ? days(r._rec, r._fin)
+                    : r._rec && r._asig ? days(r._rec, r._asig) : null;
+    const diasColor = diasTotal===null ? '' : diasTotal>14 ? 'color:var(--red);font-weight:700'
+                    : diasTotal>7 ? 'color:var(--amber);font-weight:600' : 'color:var(--green)';
+    const origen = r._orig==='ACTUAL' ? '<span class="badge b-actual">ACT</span>' : '<span class="badge b-hist">HIST</span>';
+    const fecha  = r._rec ? r._rec.toLocaleDateString('es-AR') : '—';
+    const dir    = (r._dir||'—').substring(0,28);
+    const ped    = (r._ped||'—').substring(0,40);
+    const prov   = (r._prov||'—').split(' ').slice(0,2).join(' ');
+
+    return `<tr class="g-row" onclick="abrirEdicion(${realIdx})" style="cursor:pointer">
+      <td style="font-weight:700;color:var(--green);white-space:nowrap">${n} ${origen}</td>
+      <td style="font-size:11px;white-space:nowrap;color:var(--text3)">${fecha}</td>
+      <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r._dir}">${dir}</td>
+      <td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)" title="${r._ped}">${ped}</td>
+      <td><span class="rtag">${r._rub}</span></td>
+      <td><span class="badge ${estColor}" style="font-size:10px;white-space:nowrap">${est}</span></td>
+      <td style="font-size:11px;color:var(--text2)">${prov}</td>
+      <td class="tr" style="font-weight:600;color:var(--green);white-space:nowrap">${fmtF(r._tot)}</td>
+      <td><span class="badge ${confBC}" style="font-size:10px">${conf||'—'}</span></td>
+      <td style="text-align:center;font-size:12px;${diasColor}">${diasTotal!==null?diasTotal+'d':'—'}</td>
+      <td style="text-align:center">
+        <button onclick="event.stopPropagation();abrirEdicion(${realIdx})"
+          style="background:var(--green-xl);color:var(--green);border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">
+          ✏️
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Show more
+  const more = document.getElementById('gMore');
+  if(!gShowAll && gFiltered.length > 50){
+    more.innerHTML = `<button onclick="gShowAll=true;renderGBody()" style="background:none;border:1px solid var(--border-g);color:var(--green);padding:8px 20px;border-radius:8px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer">
+      Ver todos los ${gFiltered.length} registros
+    </button>`;
+  } else {
+    more.textContent = '';
+  }
+}
+
+// ── Abrir panel de edición ────────────────────────────────
+function abrirEdicion(idx){
+  const r = gFiltered[idx];
+  if(!r){ cerrarEdicion(); return; }
+  gRowIndex = idx;
+
+  // Scroll to panel
+  const panel = document.getElementById('gEditPanel');
+  panel.style.display = '';
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+
+  // Title
+  document.getElementById('gEditTitle').textContent =
+    'Editando reclamo N° ' + (r['N° Reclamo']||'—');
+  document.getElementById('gEditSub').textContent =
+    (r._dir||'') + (r._ped ? ' · ' + r._ped.substring(0,60) : '');
+
+  // Fill fields
+  function setVal(id, val){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = val||'';
+  }
+
+  setVal('e-est',      r._est);
+  setVal('e-urg',      r['Urgencia']||r['urgencia']||'2-Media');
+  setVal('e-visita',   fmtDateInput(r['Fecha Visita/Diagnóstico']||r['Fecha Visita/Diagnóstico']||''));
+  setVal('e-ini',      fmtDateInput(r['Fecha Inicio Trabajo']||''));
+  setVal('e-fin',      fmtDateInput(r['Fecha Finalización']||''));
+  setVal('e-req',      r['Req. Aprobación Prop.']||'');
+  setVal('e-prov',     r._prov==='Sin asignar'?'':r._prov);
+  setVal('e-presup',   r['Presupuesto']||'');
+  setVal('e-mo',       r['Mano de Obra']||'');
+  setVal('e-mat',      r['Materiales']||'');
+  setVal('e-pago',     r['Total Pagado']||r['PAGADO']||'');
+  setVal('e-precio',   r['Precio Acorde Mercado']||'');
+  setVal('e-confinq',  r._confInq||r['Conformidad Inquilino']||'');
+  setVal('e-fechainq', fmtDateInput(r['Fecha Conf. Inquilino']||''));
+  setVal('e-confprop', r._confProp||r['Conformidad Propietario']||'');
+  setVal('e-tareas',   r['Tareas a Realizar']||r['TAREAS A REALIZAR']||'');
+  setVal('e-obs',      r['Observaciones']||'');
+
+  document.getElementById('gEditStatus').textContent = '';
+
+  // Highlight selected row
+  document.querySelectorAll('.g-row').forEach(tr=>tr.style.background='');
+  const rows = document.getElementById('gBody').querySelectorAll('tr');
+  const visibleIdx = gFiltered.slice(0, gShowAll?gFiltered.length:50).indexOf(r);
+  if(rows[visibleIdx]) rows[visibleIdx].style.background = 'rgba(31,108,67,0.08)';
+}
+
+function fmtDateInput(v){
+  if(!v || v==='nan') return '';
+  // Already yyyy-mm-dd
+  if(typeof v==='string' && v.match(/^\d{4}-\d{2}-\d{2}/)) return v.substring(0,10);
+  const d = pD(v);
+  if(!d) return '';
+  return d.toISOString().split('T')[0];
+}
+
+function cerrarEdicion(){
+  document.getElementById('gEditPanel').style.display = 'none';
+  document.querySelectorAll('.g-row').forEach(tr=>tr.style.background='');
+  gRowIndex = null;
+}
+
+// ── Guardar edición ───────────────────────────────────────
+async function guardarEdicion(){
+  if(gRowIndex === null){ alert('No hay reclamo seleccionado'); return; }
+  const r = gFiltered[gRowIndex];
+  if(!r){ return; }
+
+  const nro = r['N° Reclamo'];
+  if(!nro){ setGEditStatus('⚠ No se puede editar: falta N° de reclamo','var(--red)'); return; }
+
+  // Check it's from the actual sheet (not historical)
+  if(r._orig !== 'ACTUAL'){
+    setGEditStatus('⚠ Solo se pueden editar reclamos del sheet actual, no del histórico','var(--amber)');
+    return;
+  }
+
+  const btn = document.getElementById('btnGuardarEdit');
+  const btn2 = document.getElementById('btnGuardarEdit2');
+  [btn,btn2].forEach(b=>{ if(b){b.textContent='⏳ Guardando…';b.disabled=true;} });
+  setGEditStatus('Enviando cambios al Sheet…','var(--text3)');
+
+  const cambios = {
+    'N° Reclamo':                    nro,
+    'Estado Actual':                 document.getElementById('e-est').value,
+    'Urgencia':                      document.getElementById('e-urg').value,
+    'Fecha Visita/Diagnóstico':      document.getElementById('e-visita').value,
+    'Fecha Inicio Trabajo':          document.getElementById('e-ini').value,
+    'Fecha Finalización':            document.getElementById('e-fin').value,
+    'Req. Aprobación Prop.':         document.getElementById('e-req').value,
+    'Contratista Asignado':          document.getElementById('e-prov').value,
+    'Presupuesto':                   document.getElementById('e-presup').value,
+    'Mano de Obra':                  document.getElementById('e-mo').value,
+    'Materiales':                    document.getElementById('e-mat').value,
+    'Total Pagado':                  document.getElementById('e-pago').value,
+    'Precio Acorde Mercado':         document.getElementById('e-precio').value,
+    'Conformidad Inquilino':         document.getElementById('e-confinq').value,
+    'Fecha Conf. Inquilino':         document.getElementById('e-fechainq').value,
+    'Conformidad Propietario':       document.getElementById('e-confprop').value,
+    'Tareas a Realizar':             document.getElementById('e-tareas').value,
+    'Observaciones':                 document.getElementById('e-obs').value,
+  };
+
+  const payload = { action: 'editar_reclamo', data: cambios };
+
+  // Try POST first, fallback to JSONP
+  try {
+    await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      redirect:'follow'
+    });
+    afterGuardarEdit();
+  } catch(e) {
+    editarJSONP(payload);
+  }
+
+  [btn,btn2].forEach(b=>{ if(b){b.textContent='💾 Guardar cambios';b.disabled=false;} });
+}
+
+function editarJSONP(payload){
+  const old = document.getElementById('_jsonp_edit'); if(old) old.remove();
+  const encoded = encodeURIComponent(JSON.stringify(payload.data));
+  window._editCb = function(res){
+    if(res.ok){
+      afterGuardarEdit();
+    } else {
+      setGEditStatus('⚠ Error: '+(res.error||'desconocido'),'var(--red)');
+    }
+  };
+  const s = document.createElement('script');
+  s.id = '_jsonp_edit';
+  s.src = API_URL + '?callback=_editCb&action=editar_reclamo&data='+encoded+'&t='+Date.now();
+  document.body.appendChild(s);
+}
+
+function afterGuardarEdit(){
+  setGEditStatus('✅ Cambios guardados correctamente','var(--green)');
+  setTimeout(()=>{
+    cerrarEdicion();
+    loadData(); // recargar datos
+  }, 1500);
+}
+
+function setGEditStatus(msg, color){
+  const el = document.getElementById('gEditStatus');
+  if(el){ el.textContent = msg; el.style.color = color; }
 }
 
 // INIT
