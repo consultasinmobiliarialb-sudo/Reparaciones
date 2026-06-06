@@ -1894,21 +1894,8 @@ async function guardarEnSheet(){
     }
   };
 
-  try {
-    // Use no-cors mode — Apps Script will receive and process
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
-      redirect: 'follow'
-    });
-
-    setSaveStatus('✅ ¡Reclamo guardado correctamente en el Sheet!','var(--green)');
-    setTimeout(()=>{ limpiarNuevo(); loadData(); }, 2000);
-  } catch(e) {
-    // fetch may throw due to CORS on POST — try JSONP fallback
-    guardarJSONP(payload);
-  }
+  // Apps Script no acepta POST desde browser (CORS) — usamos JSONP
+  guardarJSONP(payload);
   btn.textContent = '💾 Guardar en Sheet'; btn.disabled = false;
 }
 
@@ -2154,45 +2141,36 @@ async function guardarEdicion(){
 
   const payload = { action: 'editar_reclamo', data: cambios };
 
-  // Try POST first, fallback to JSONP
-  try {
-    await fetch(API_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(payload),
-      redirect:'follow'
-    });
-    afterGuardarEdit();
-  } catch(e) {
-    editarJSONP(payload);
-  }
-
+  // Apps Script no acepta POST desde browser (CORS) — usamos JSONP
+  editarJSONP(payload);
   [btn,btn2].forEach(b=>{ if(b){b.textContent='💾 Guardar cambios';b.disabled=false;} });
 }
 
 function editarJSONP(payload){
   const old = document.getElementById('_jsonp_edit'); if(old) old.remove();
   const encoded = encodeURIComponent(JSON.stringify(payload.data));
+  setGEditStatus('⏳ Guardando cambios…','var(--text3)');
   window._editCb = function(res){
-    if(res.ok){
-      afterGuardarEdit();
+    if(res && res.ok){
+      afterGuardarEdit(res.cambios);
     } else {
-      setGEditStatus('⚠ Error: '+(res.error||'desconocido'),'var(--red)');
+      setGEditStatus('⚠ Error: '+((res&&res.error)||'no se pudo conectar'),'var(--red)');
     }
   };
   const s = document.createElement('script');
   s.id = '_jsonp_edit';
   s.src = API_URL + '?callback=_editCb&action=editar_reclamo&data='+encoded+'&t='+Date.now();
+  s.onerror = function(){ setGEditStatus('⚠ Error de conexión con el Script','var(--red)'); };
   document.body.appendChild(s);
 }
 
-function afterGuardarEdit(){
-  setGEditStatus('✅ Cambios guardados correctamente','var(--green)');
-  setTimeout(()=>{
-    cerrarEdicion();
-    loadData(); // recargar datos
-  }, 1500);
+function afterGuardarEdit(cambios){
+  const msg = cambios !== undefined ? '✅ '+cambios+' campo(s) actualizado(s)' : '✅ Cambios guardados';
+  setGEditStatus(msg,'var(--green)');
+  setTimeout(()=>{ cerrarEdicion(); loadData(); }, 1800);
 }
+
+// afterGuardarEdit defined above with editarJSONP
 
 function setGEditStatus(msg, color){
   const el = document.getElementById('gEditStatus');
