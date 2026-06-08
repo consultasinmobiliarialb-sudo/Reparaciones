@@ -1121,35 +1121,59 @@ const GC='rgba(31,108,67,0.08)',TC='#8aab96',CF={size:11,family:'Source Sans 3'}
 function enrich(rows){
   return rows.map(r=>({
     ...r,
-    // Campo pedido — soporta ambos sheets
-    _ped: r._ped,
-    // Rubro: usar el campo directo si existe, sino detectar del pedido
-    _rub: (r['Rubro']&&r['Rubro'].trim()&&r['Rubro'].trim()!=='nan') ? r['Rubro'].trim() : rubro(r._ped),
+    _ped: r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||'',
+    _rub: (r['Rubro']&&String(r['Rubro']).trim()&&String(r['Rubro']).trim()!=='nan')
+          ? normRubro(String(r['Rubro']).trim())
+          : rubro(r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||''),
     _mo:  pN(r['Mano de Obra']),
     _mat: pN(r['Materiales']),
-    _tot: pN(r['Mano de Obra'])+pN(r['Materiales']),
-    // Fechas — nombres distintos en cada sheet
-    _rec: pD(r['Fecha Recepción Mail']||r['Recepción Reclamo']||''),
-    _asig:pD(r['Fecha Carga Sistema']||r['Fecha de Asignación']||''),
-    _ini: pD(r['Fecha Inicio Trabajo']||''),
-    _fin: pD(r['Fecha Finalización']||''),
-    // Proveedor
+    _tot: pN(r['Mano de Obra'])+pN(r['Materiales'])||pN(r['Presupuesto'])||0,
+    _rec:  pD(r['Fecha Recepción Mail']||r['Recepción Reclamo']||''),
+    _asig: pD(r['Fecha de Asignación']||r['Fecha Carga Sistema']||''),
+    _ini:  pD(r['Fecha Inicio Trabajo']||''),
+    _fin:  pD(r['Fecha Finalización']||''),
     _prov:(r['Contratista Asignado']||'').trim()||'Sin asignar',
-    // Dirección
     _dir: (r['Dirección']||r['DIRECCION']||'').trim(),
-    // Estado
-    _est: r['Estado Actual']||r['Estado Reparacion']||'',
-    // Conformidad (solo en sheet nuevo)
-    _confInq: r._confInq,
-    _confProp: r._confProp,
-    // Días proceso
-    _reqApro: r['Req. Aprobación Prop.']||'',
+    _est: normEstado(r['Estado Actual']||r['Estado Reparacion']||''),
+    _confInq:  r['Conformidad Inquilino']||'',
+    _confProp: r['Conformidad Propietario']||'',
+    _reqApro:  r['Req. Aprobación Prop.']||'',
+    _prop: r['Propietario']||r['PROPIETARIO']||'',
+    _inq:  r['Inquilino']||r['INQUILINO']||'',
   }));
 }
 
-// ═══════════════════════════════════════════════════════════
-//  FILTROS
-// ═══════════════════════════════════════════════════════════
+function normEstado(e){
+  const s = String(e||'').toLowerCase().trim();
+  if(!s||s==='nan') return '';
+  if(s.includes('cerrado')||s==='terminado') return 'Cerrado';
+  if(s.includes('conformidad')) return 'Finalizado — pendiente conformidad';
+  if(s.includes('ejecución')||s.includes('ejecucion')||s.includes('iniciado')||s.includes('en proceso')) return 'Aprobado — en ejecución';
+  if(s.includes('aprobac')&&s.includes('prop')) return 'Esperando aprobación propietario';
+  if(s.includes('presupuesto')) return 'Presupuesto recibido';
+  if(s.includes('visita')||s.includes('diagnós')) return 'Visita realizada';
+  if(s.includes('asignado')) return 'Proveedor asignado';
+  if(s.includes('evaluac')) return 'En evaluación';
+  if(s.includes('recibido')) return 'Recibido';
+  if(s.includes('cancelado')) return 'Cancelado';
+  return e;
+}
+
+function normRubro(r){
+  const s = r.toLowerCase();
+  if(s.includes('plom')) return 'Plomería';
+  if(s.includes('caldera')||s.includes('calef')||s.includes('calefon')) return 'Caldera / Calefacción';
+  if(s.includes('electr')) return 'Electricidad';
+  if(s.includes('humedad')||s.includes('filtr')) return 'Humedad / Filtraciones';
+  if(s.includes('alb')) return 'Albañilería';
+  if(s.includes('carp')||s.includes('puerta')||s.includes('ventana')) return 'Carpintería';
+  if(s.includes('herr')) return 'Herrería';
+  if(s.includes('pint')) return 'Pintura';
+  if(s.includes('gas')||s.includes('horn')) return 'Gas / Hornallas';
+  if(s.includes('limp')||s.includes('destape')) return 'Limpieza / Destape';
+  return r;
+}
+
 function initFilters(){
   const all=[...dataActual,...dataHistorico];
   const ys=new Set(),ms=new Set(),rubs=new Set();
@@ -1387,7 +1411,7 @@ function buildPropData(){
   filteredAll.forEach(r=>{
     if(!r._dir)return;
     if(!propData[r._dir])propData[r._dir]={
-      prop:r['Propietario']||r['PROPIETARIO']||'—',
+      prop:r._prop||'—',
       inq:r['INQUILINO']||r['Inquilino']||'—',
       rows:[],orig:r._orig
     };
@@ -1728,8 +1752,8 @@ function buscarAntecedentes(){
   }
 
   // Autocompletar propietario (el más reciente)
-  const propietario = matches.filter(r=>r['Propietario']||r['PROPIETARIO']).slice(-1)[0];
-  if(propietario) document.getElementById('f-prop').value = propietario['Propietario']||propietario['PROPIETARIO']||'';
+  const propietario = matches.filter(r=>r._prop).slice(-1)[0];
+  if(propietario) document.getElementById('f-prop').value = propietario._prop||'';
 
   // Stats
   const gastoTotal = matches.reduce((s,r)=>s+r._tot,0);
