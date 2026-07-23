@@ -1050,7 +1050,7 @@ footer{
 // ═══════════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════════
-const API_URL = "https://script.google.com/macros/s/AKfycbxtoJQSR40Amspz5g_Z6g3rtCCkfaiVSgrREb8vysDTvDw6qtTWyqOqoH-D1bta9Cg7qg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyi6zlGFlPYwKIe2MFPcWK2m01D_ktPlkTCI5m8N84ILcO7f23QB7xtRjjWc8vLPzU_SQ/exec";
 
 // ═══════════════════════════════════════════════════════════
 //  CATEGORÍAS
@@ -1127,37 +1127,52 @@ const GC='rgba(26,107,74,0.07)',TC='#85A18F',CF={size:11,family:'Inter'};
 function enrich(rows){
   return rows.map(r=>({
     ...r,
-    _ped: r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||'',
-    _rub: (r['Rubro']&&String(r['Rubro']).trim()&&String(r['Rubro']).trim()!=='nan')
-          ? normRubro(String(r['Rubro']).trim())
-          : rubro(r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||''),
-    _mo:  pN(r['Mano de Obra']),
-    _mat: pN(r['Materiales']),
-    _tot: pN(r['Mano de Obra'])+pN(r['Materiales'])||pN(r['Presupuesto'])||0,
+    _ped:  r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||'',
+    _rub:  (r['Rubro']&&String(r['Rubro']).trim()&&String(r['Rubro']).trim()!=='nan')
+           ? normRubro(String(r['Rubro']).trim())
+           : rubro(r['Pedido de Reparación']||r['PEDIDO DE REPARACION']||''),
+    _mo:   pN(r['Mano de Obra']),
+    _mat:  pN(r['Materiales']),
+    _tot:  pN(r['Mano de Obra'])+pN(r['Materiales'])||pN(r['Presupuesto'])||0,
     _rec:  pD(r['Fecha Recepción Mail']||r['Recepción Reclamo']||''),
-    _asig: pD(r['Fecha de Asignación']||r['Fecha Carga Sistema']||''),
+    _asig: pD(r['Fecha de Asignación']||''),
     _ini:  pD(r['Fecha Inicio Trabajo']||''),
     _fin:  pD(r['Fecha Finalización']||r['Fecha Conf. Inquilino']||''),
-    _prov:(r['Contratista Asignado']||'').trim()||'Sin asignar',
-    _dir: (r['Dirección']||r['DIRECCION']||'').trim(),
-    _est: normEstado(r['Estado Actual']||r['Estado Reparacion']||'', r['Estado Orden Servicio']||''),
+    _prov: (r['Contratista Asignado']||'').trim()||'Sin asignar',
+    _dir:  (r['Dirección']||r['DIRECCION']||'').trim(),
+    _est:  normEstado(r['Estado Actual']||r['Estado Reparacion']||'', r['Estado Orden Servicio']||''),
     _confInq:  r['Conformidad Inquilino']||'',
     _confProp: r['Conformidad Propietario']||'',
     _reqApro:  r['Req. Aprobación Prop.']||'',
     _prop: r['Propietario']||r['PROPIETARIO']||'',
     _inq:  r['Inquilino']||r['INQUILINO']||'',
+    _nro:  r['N° Reparacion']||r['N° Reclamo']||'',
+    _coord:r['Coordina']||'',
+    _coment:r['Comentarios']||r['Observaciones']||'',
+    _antec:r['Antecendentes/Implicancias']||'',
   }));
 }
 
 function normEstado(e, ordenServicio){
-  // Primero chequear Estado Orden Servicio (columna AJ — es el estado de cierre real)
+  // Estado Orden Servicio (columna AJ) — tiene prioridad para cierre
   const os = String(ordenServicio||'').toLowerCase().trim();
   if(os.includes('finalizado')||os.includes('cerrado')) return 'Cerrado';
   if(os.includes('conformidad')) return 'Finalizado — pendiente conformidad';
+  if(os==='en proceso') return 'Aprobado — en ejecución';
 
-  // Después interpretar Estado Actual
+  // Estado Actual — nuevo formato numérico "1. Sin asignar", etc.
   const s = String(e||'').toLowerCase().trim();
   if(!s||s==='nan') return '';
+
+  // Formato nuevo con número
+  if(s.startsWith('6.')||s.includes('finalizado')) return 'Cerrado';
+  if(s.startsWith('5.')||s.includes('a pagar')) return 'Finalizado — pendiente conformidad';
+  if(s.startsWith('4.')||s.includes('en reparación')||s.includes('en reparacion')) return 'Aprobado — en ejecución';
+  if(s.startsWith('3.')||s.includes('autorización')||s.includes('autorizacion')||s.includes('presupuesto')) return 'Esperando aprobación propietario';
+  if(s.startsWith('2.')||s.includes('contratista asignado')||s.includes('asignado')) return 'Proveedor asignado';
+  if(s.startsWith('1.')||s.includes('sin asignar')) return 'Recibido';
+
+  // Formato viejo (histórico)
   if(s.includes('cerrado')||s==='terminado') return 'Cerrado';
   if(s.includes('conformidad')) return 'Finalizado — pendiente conformidad';
   if(s.includes('ejecución')||s.includes('ejecucion')||s.includes('iniciado')||s.includes('en proceso')) return 'Aprobado — en ejecución';
@@ -1172,7 +1187,8 @@ function normEstado(e, ordenServicio){
 }
 
 function normRubro(r){
-  const s = r.toLowerCase();
+  const s = String(r||'').toLowerCase();
+  if(!s||s==='nan') return 'Otros';
   if(s.includes('plom')) return 'Plomería';
   if(s.includes('caldera')||s.includes('calef')||s.includes('calefon')) return 'Caldera / Calefacción';
   if(s.includes('electr')) return 'Electricidad';
@@ -1183,8 +1199,13 @@ function normRubro(r){
   if(s.includes('pint')) return 'Pintura';
   if(s.includes('gas')||s.includes('horn')) return 'Gas / Hornallas';
   if(s.includes('limp')||s.includes('destape')) return 'Limpieza / Destape';
-  return r;
+  if(s.includes('bomba')) return 'Plomería';
+  if(s.includes('piso')) return 'Albañilería';
+  if(s.includes('cerraj')) return 'Carpintería';
+  if(s.includes('general')||s.includes('mnto')||s.includes('mantenimiento')) return 'Otros / Mantenimiento';
+  return r.length > 30 ? r.substring(0,28)+'…' : r;
 }
+
 
 function initFilters(){
   const all=[...dataActual,...dataHistorico];
@@ -1400,7 +1421,7 @@ function filterReclamosTable(){
     const confBC=(r._confInq).includes('Conforme')&&!r._confInq.includes('No')?'b-green':r._confInq==='No conforme'?'b-red':'b-gray';
     const totDays=days(r._rec,r._fin||r._asig);
     const fecha=r._rec?r._rec.toLocaleDateString('es-AR'):'—';
-    const n=r['N° Reclamo']||r['N°']||'';
+    const n=r._nro||r['N° Reclamo']||r['N°']||'';
     return`<tr>
       <td style="font-weight:700;color:var(--green)">${n}</td>
       <td style="font-size:11px;white-space:nowrap">${fecha}</td>
@@ -1628,7 +1649,7 @@ function filterHistTable(){
   el.innerHTML=rows.slice(0,150).map(r=>{
     const estBC=r._est==='Terminado'||r._est==='Cerrado'?'b-green':r._est==='En Proceso'?'b-blue':'b-gray';
     return`<tr>
-      <td style="font-weight:700;color:var(--green)">${r['N° Reclamo']||'—'}</td>
+      <td style="font-weight:700;color:var(--green)">${r._nro||r['N° Reclamo']||'—'}</td>
       <td style="font-size:11px;white-space:nowrap">${r._rec?r._rec.toLocaleDateString('es-AR'):'—'}</td>
       <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r._dir||'—'}</td>
       <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(r['PEDIDO DE REPARACION']||'—').substring(0,60)}</td>
@@ -1808,7 +1829,7 @@ function buscarAntecedentes(){
         <tbody>
           ${[...matches].sort((a,b)=>(b._rec||0)-(a._rec||0)).map(r=>{
             const conf = r._confInq||r['Conformidad Inquilino']||'';
-            const confBC = conf.includes('Conforme')&&!conf.includes('No')?'#dcfce7;color:#166534':conf==='No conforme'?'#fee2e2;color:#b91c1c':'#f1f5f9;color:#475569';
+            const confBC = (conf.includes('Conforme')&&!conf.includes('No')&&!conf.includes('Dis'))?'#dcfce7;color:#166534':conf==='No conforme'?'#fee2e2;color:#b91c1c':'#f1f5f9;color:#475569';
             const estBC = r._est==='Cerrado'||r._est==='Terminado'?'#dcfce7;color:#166534':'#f1f5f9;color:#475569';
             return `<tr style="border-bottom:1px solid var(--border)">
               <td style="padding:7px 8px;white-space:nowrap;color:var(--text3)">${r._rec?r._rec.toLocaleDateString('es-AR'):'—'}</td>
@@ -2025,7 +2046,7 @@ function renderGBody(){
                    : est==='Cancelado'                  ? 'b-red'
                    : 'b-gray';
     const conf    = r._confInq || '';
-    const confBC  = conf.includes('Conforme')&&!conf.includes('No') ? 'b-green'
+    const confBC  = (conf.includes('Conforme')&&!conf.includes('No')&&!conf.includes('Dis')) ? 'b-green'
                   : conf==='No conforme' ? 'b-red' : 'b-gray';
     const diasTotal = r._rec && r._fin ? days(r._rec, r._fin)
                     : r._rec && r._asig ? days(r._rec, r._asig) : null;
@@ -2081,7 +2102,7 @@ function abrirEdicion(idx){
 
   // Title
   document.getElementById('gEditTitle').textContent =
-    'Editando reclamo N° ' + (r['N° Reclamo']||'—');
+    'Editando reclamo N° ' + (r._nro||r['N° Reclamo']||'—');
   document.getElementById('gEditSub').textContent =
     (r._dir||'') + (r._ped ? ' · ' + r._ped.substring(0,60) : '');
 
@@ -2140,7 +2161,7 @@ async function guardarEdicion(){
   const r = gFiltered[gRowIndex];
   if(!r){ return; }
 
-  const nro = r['N° Reclamo'];
+  const nro = r._nro||r['N° Reclamo'];
   if(!nro){ setGEditStatus('⚠ No se puede editar: falta N° de reclamo','var(--red)'); return; }
 
   // Check it's from the actual sheet (not historical)
